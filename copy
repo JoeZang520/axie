@@ -1,0 +1,20 @@
+git add .
+
+git commit -am "J9"
+
+git push --force origin main
+
+git push origin main
+
+
+git rm --cached copy
+git commit -am "Remove 'copy' from version control"
+
+
+
+git push origin main
+
+
+git fetch origin
+git pull origin main
+
