@@ -1,28 +1,29 @@
 axie_cards = {
 
-    "middle_axie": [
-        ("nut_t", 1, False, None, None),
-        ("nut_m", 1, False, None, None),
-        ("nut_e", 1, False, None, None),
-        ("peas", 1, False, None, None),
-        ("imp", 1, False, None, None),
-        ("ronin", 1, False, None, None)
+    "middle4548": [
+        ("zeal", 0, False, None, None),  # 0费
+        ("confident", 0, True, "ally", "all"),  # 0费
+        ("little_branch", 2, False, None, None),
+        ("puppy_ear", 1, False, None, None),
+        ("hero", 1, False, None, None),
+        ("tiny_dino", 1, False, None, None)
+     
     ],
-    "back_axie": [
-        ("pogona", 1, False, None, None),
-        ("confusion", 1, True, "ally", "all"),
-        ("cottontail", 0, True, "ally", "all"),  # 0费
-        ("unko", 1, True, "ally", "all"),
-        ("pigeon_post", 1, True, "enemy", "front_back"),
-        ("tiny_turtle", 1, True, "enemy", "front_back")
-    ],
-    "front_axie": [
+    "back1523": [
+        ("zeal", 0, False, None, None),  # 0费
+        ("confident", 0, True, "ally", "all"),  # 0费 
         ("cattail", 1, True, "ally", "all"),
-        ("babylon", 1, True, "enemy", "front_back"),
-        ("lam", 1, False, None, None),
-        ("confusion", 1, True, "ally", "all"),
-        ("leafy", 1, False, None, None),
-        ("hermit", 1, True, "ally", "all")
+        ("innocent_lamb", 0, False, None, None),  # 0费
+        ("lagging", 1, True, "ally", "all"),  
+        ("mint", 1, False, None, None)
+    ],
+    "front1409": [
+        ("cattail", 1, True, "ally", "all"),
+        ("confident", 0, True, "ally", "all"),  # 0费
+        ("zeal", 0, False, None, None),  # 0费
+        ("lotus", 1, True, "ally", "all"),
+        ("rose_bud", 1, True, "ally", "all"),
+        ("bidens", 1, True, "ally", "all")
     ],
     "blackmail": [
         ("blackmail_card", 0, False, None, None)
@@ -58,27 +59,30 @@ axie_cards = {
 }
 
 card_priority = [
-    'nut_t', 'nut_m', 'nut_e', 'peas', 'imp', 'ronin',
-    'pogona', 'babylon', 'tiny_turtle', 'cattail', 'lam', 'leafy', 'pigeon_post',
-    'confusion', 'unko', 'hermit', 'cottontail', "glove", "sword", "knife", "shield", "axe"
+    'innocent_lamb', 'confident', 'little_branch', 'puppy_ear', 'hero', 'zeal', 'tiny_dino',
+    'energy_coin_card', 'cattail', 'mint', 'rose_bud', 'biden', 'lotus', 'lagging',
+    'glove', 'sword', 'knife', 'shield', 'axe'
 ]
-card_to_detect= ["blackmail", "energy_coin", "sword", "shield", "knife", "axe", "goo", "jinx", "confused", "back_axie", "middle_axie", "front_axie"]
+card_to_detect= ['glove', 'sword', 'knife', 'shield', 'axe', "blackmail", "energy_coin", "goo", "jinx", "confused", 
+                 "back1523", "middle4548", "front1409"]
 
 # 读取手牌信息时需要用到的模板匹配阈值
 thresholds = {
     "blackmail": 0.9,
-    "energy_coin": 0.95,
-    "back_axie": 0.65,
-    "middle_axie": 0.65,
-    "front_axie": 0.65,
-    "goo": 0.95,
-    "jinx": 0.95,
-    "confused": 0.9,
+    "energy_coin": 0.9,
+    "back1523": 0.65,
+    "middle4548": 0.65,
+    "front1409": 0.65,
+    "goo": 0.9,
+    "jinx": 0.9,
+    "confused": 0.95,
+    "glove": 0.9,
     "sword": 0.9,
-    "shield": 0.9,
+    "shield": 0.85,
     "knife": 0.9,
-    "axe": 0.95
+    "axe": 0.9
 }
 
-no_fragment_cards = ['nut_t']
 exe_path = r"E:\Axie Infinity - Origins\AxieInfinity-Origins.exe"
+go_second = 'go_second'
+no_pref = 'no_pref'
