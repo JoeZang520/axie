@@ -6,9 +6,14 @@ import time
 import random
 import subprocess
 from axie_cards import (
-    axie_cards, card_priority, card_to_detect, thresholds,
-    no_fragment_cards, reduce_fragment_cards, exe_path, go_second, no_pref
+    axie_cards, card_priority, card_to_detect, thresholds,exe_path
 )
+
+# 全局变量存储初始位置信息
+initial_positions = {
+    'ally': {'前排': [], '中排': [], '后排': []},
+    'enemy': {'前排': [], '中排': [], '后排': []}
+}
 
 def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=True, gray_diff_threshold=15):
     if not png.endswith('.png'):
@@ -112,11 +117,7 @@ def image_multi(png_list, thresholds=thresholds, region=None, min_x_distance=60,
                 results[role] = []
                 continue
 
-        threshold = thresholds.get(role)
-        if threshold is None:
-            print(f"[WARN] 角色/卡牌 {role} 没有设置阈值，使用默认阈值0.8")
-            threshold = 0.8
-
+        threshold = thresholds.get(role, 0.8)
         all_points = []
         for template_path in templates:
             template = cv2.imread(template_path, cv2.IMREAD_COLOR)
@@ -138,19 +139,23 @@ def image_multi(png_list, thresholds=thresholds, region=None, min_x_distance=60,
             for pt in zip(*locations[::-1]):
                 center_x = pt[0] + template.shape[1] // 2 + x1
                 center_y = pt[1] + template.shape[0] // 2 + y1
+                match_value = float(result[pt[1], pt[0]])  # 转换为Python float
                 
                 if is_far_enough_x(center_x, all_points, min_x_distance):
-                    all_points.append((center_x, center_y, result[pt[1], pt[0]]))
+                    all_points.append((center_x, center_y, match_value))
 
         if not all_points:
-            print(f"[MISS] 未找到匹配的 {role}")
+            print(f"[MISS] 未找到 {role}")
+        else:
+            values = [f"{p[2]:.3f}" for p in all_points]  # 格式化为3位小数的字符串
+            print(f"[MATCH] {role}: {values}")
             
         results[role] = all_points
 
     return results
 
 
-def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=45, return_all_positions=False):
+def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=50, return_all_positions=False, color=True):
     start_time = time.time()
     print(f"正在加载 {image_names} ... ")
     found_positions = {}
@@ -160,7 +165,7 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         all_found = True
         for image_name in image_names:
             if image_name not in found_positions:
-                pos = image(image_name, threshold=threshold, click_times=click_times, color=True)
+                pos = image(image_name, threshold=threshold, click_times=click_times, color=color)  # 使用传入的color参数
                 if pos is not None:
                     found_positions[image_name] = pos
                     if not return_all_positions:
@@ -183,13 +188,15 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         time.sleep(check_interval)
 
 
-def detect_cards(color=True, quick_check=False, n=0):
-    time.sleep(n)
+def detect_cards(color=True, quick_check=False):
+    time.sleep(2)
     # 等待icon图片出现
-    icon_result = loading(['icon'], return_all_positions=True)
+    icon_result = loading(['icon'], click_times=0, timeout=5, return_all_positions=True)
     if icon_result is None:
         print("[ERROR] 未找到icon图片，无法定位手牌区域")
         return {}
+    else:
+        pyautogui.moveRel(0, 0)
 
     icon_x, icon_y = icon_result['icon']  # 从字典中获取icon的坐标
     # 计算搜索区域的左上角和右下角坐标
@@ -208,17 +215,10 @@ def detect_cards(color=True, quick_check=False, n=0):
 
     # 如果是快速检测模式，只返回检测到的卡片数量
     if quick_check:
-        total_cards = 0
-        for role, points in matches.items():
-            if role not in axie_cards:
-                continue
-            total_cards += len(points)
+        total_cards = sum(len(points) for points in matches.values())
         return {'total_cards': total_cards}
 
     for role, points in matches.items():
-        if role not in axie_cards:
-            continue
-
         card_list = axie_cards[role]
         # 按x坐标排序点位
         sorted_points = sorted(points, key=lambda p: p[0])
@@ -229,9 +229,7 @@ def detect_cards(color=True, quick_check=False, n=0):
         for idx, (x, y, _) in enumerate(sorted_points, start=1):
             # 移动鼠标到卡片位置
             pyautogui.moveTo(x, y)
-            pyautogui.moveRel(0, 100)
-            pyautogui.moveTo(x, y)
-            time.sleep(0.1)  # 减少等待时间
+            time.sleep(0.1)
 
             matched_this_axie = []
 
@@ -267,10 +265,12 @@ def detect_cards(color=True, quick_check=False, n=0):
 
             role_cards_info.append({
                 "slot_index": card_slot_index,
-                "cards": matched_this_axie
+                "cards": matched_this_axie or [{"name": "unknown", "energy": 0, "target": None, "target_side": None, "target_row": None}]  # 如果没有匹配到具体卡牌，也添加一个占位卡牌
             })
 
             card_slot_index += 1
+            # 鼠标移动到卡片外
+            pyautogui.moveRel(0, -500)
 
         result[role] = role_cards_info
 
@@ -284,10 +284,12 @@ def get_energy_info(timeout=3):  # 默认3秒超时
     fragment_value = 0
 
     # 等待icon图片出现
-    icon_result = loading(['icon'], threshold=0.7, return_all_positions=True)
+    icon_result = loading(['icon'], click_times=0, timeout=5, return_all_positions=True)
     if icon_result is None:
         print("[ERROR] 未找到icon图片，无法定位能量和碎片区域")
         return energy_value, fragment_value
+    else:
+        pyautogui.moveRel(0, 0)
 
     icon_x, icon_y = icon_result['icon']  # 从字典中获取icon的坐标
     # 计算搜索区域的左上角和右下角坐标
@@ -332,12 +334,15 @@ def get_all_positions():
     通过找到 'icon.png' 参照点，计算12个站位坐标，返回字典。
     需要你根据游戏界面实际偏移值调整offset_x和offset_y。
     """
-    icon_pos = image('icon')
-    if icon_pos is None:
-        print("[ERROR] 未找到icon图片，无法定位站位")
+    # 等待icon图片出现
+    icon_result = loading(['icon'], click_times=0, timeout=5, return_all_positions=True)
+    if icon_result is None:
+        print("[ERROR] 未找到icon图片，无法定位手牌区域")
         return {}
+    else:
+        pyautogui.moveRel(0, 0)
 
-    icon_x, icon_y = icon_pos
+    icon_x, icon_y = icon_result['icon']  # 从字典中获取icon的坐标
 
     # 4排每排起点坐标，基于icon点偏移确定（需你测量替换）
     row_starts = {
@@ -360,7 +365,47 @@ def get_all_positions():
     return all_positions
 
 
+def get_health_bar_info(x, y):
+    """获取血条信息
+    返回: (血量百分比, 是否存活)
+    """
+    # 血条区域 (相对于axie位置)
+    bar_region = (x - 30, y - 85, x + 70, y - 80)  # 血条的大致区域
+    
+    # 获取血条区域的图像
+    screenshot = pyautogui.screenshot(region=(bar_region[0], bar_region[1], bar_region[2] - bar_region[0], bar_region[3] - bar_region[1]))
+    if screenshot is None:
+        return 0, False
+    save_path = f'pic/health_bar_{x-30}_{y-85}.png'
+    screenshot.save(save_path)
+    print(f"[DEBUG] 已保存血条截图: {save_path}")    
+    # 转换为numpy数组
+    bar_array = np.array(screenshot)
+    
+    # 定义空血管颜色范围 (RGB: 147,94,70)
+    empty_color_lower = np.array([70, 94, 147])  # BGR格式，稍微放宽范围
+    empty_color_upper = np.array([68, 86, 149])  # BGR格式，稍微放宽范围
+    
+    # 创建掩码
+    mask = cv2.inRange(bar_array, empty_color_lower, empty_color_upper)
+    
+    # 计算空血管像素的数量
+    empty_pixels = np.sum(mask > 0)
+    total_pixels = bar_array.shape[0] * bar_array.shape[1]
+    
+    # 计算空血管比例
+    empty_percentage = (empty_pixels / total_pixels) * 100
+    
+    # 计算血量百分比 (100% - 空血管比例)
+    health_percentage = 100 - empty_percentage
+    
+    # 判断是否存活 (血量大于0)
+    is_alive = health_percentage > 0
+    
+    return health_percentage, is_alive
+
 def get_axie_info():
+    global initial_positions
     all_positions = get_all_positions()
     axie_positions = {}
 
@@ -376,44 +421,74 @@ def get_axie_info():
     team_ally = {k: v for k, v in axie_positions.items() if k.startswith(('A', 'B'))}
     team_enemy = {k: v for k, v in axie_positions.items() if k.startswith(('C', 'D'))}
 
-    # 排位分类函数
-    def classify_rows(team_dict, reverse_x=True):
-        sorted_items = sorted(team_dict.items(), key=lambda item: item[1][0], reverse=reverse_x)
-        result = {'前排': [], '中排': [], '后排': []}
-        n = len(sorted_items)
+    # 如果是第一次运行，记录初始位置
+    if not any(initial_positions['ally'].values()) and not any(initial_positions['enemy'].values()):
+        print("[INFO] 首次运行，记录初始位置信息...")
+        # 根据x坐标排序
+        sorted_ally = sorted(team_ally.items(), key=lambda item: item[1][0], reverse=True)
+        sorted_enemy = sorted(team_enemy.items(), key=lambda item: item[1][0], reverse=False)
+        
+        # 记录我方初始位置
+        if len(sorted_ally) >= 1:
+            initial_positions['ally']['前排'] = [sorted_ally[0][0]]
+        if len(sorted_ally) >= 2:
+            initial_positions['ally']['中排'] = [sorted_ally[1][0]]
+        if len(sorted_ally) >= 3:
+            initial_positions['ally']['后排'] = [sorted_ally[2][0]]
+            
+        # 记录敌方初始位置
+        if len(sorted_enemy) >= 1:
+            initial_positions['enemy']['前排'] = [sorted_enemy[0][0]]
+        if len(sorted_enemy) >= 2:
+            initial_positions['enemy']['中排'] = [sorted_enemy[1][0]]
+        if len(sorted_enemy) >= 3:
+            initial_positions['enemy']['后排'] = [sorted_enemy[2][0]]
+            
+        print("[INFO] 初始位置信息记录完成")
+        print("\n=== 初始位置信息 ===")
+        for side, side_name in [('ally', '我方'), ('enemy', '敌方')]:
+            print(f"【{side_name}】")
+            for row in ['前排', '中排', '后排']:
+                positions = initial_positions[side][row]
+                if positions:
+                    print(f"{row}: {', '.join(positions)}")
 
-        if n == 1:
-            result['前排'].append(sorted_items[0][0])
-        elif n == 2:
-            result['前排'].append(sorted_items[0][0])
-            result['后排'].append(sorted_items[1][0])
-        elif n == 3:
-            result['前排'].append(sorted_items[0][0])
-            result['中排'].append(sorted_items[1][0])
-            result['后排'].append(sorted_items[2][0])
-        else:
-            part = n // 3
-            for i, (pos_name, _) in enumerate(sorted_items):
-                if i < part:
-                    result['前排'].append(pos_name)
-                elif i < 2 * part:
-                    result['中排'].append(pos_name)
-                else:
-                    result['后排'].append(pos_name)
+    # 根据初始位置信息分类当前axie
+    def classify_by_initial_position(team_dict, is_ally=True):
+        result = {'前排': [], '中排': [], '后排': []}
+        side = 'ally' if is_ally else 'enemy'
+        
+        # 获取初始位置信息
+        initial = initial_positions[side]
+        
+        # 根据初始位置信息分类
+        for pos_name, (x, y) in team_dict.items():
+            # 检查这个位置在初始时属于哪一排
+            for row in ['前排', '中排', '后排']:
+                if pos_name in initial[row]:
+                    result[row].append(pos_name)
+                    break
+        
         return result
 
-    ally_rows = classify_rows(team_ally, reverse_x=True)
-    enemy_rows = classify_rows(team_enemy, reverse_x=False)
+    ally_rows = classify_by_initial_position(team_ally, is_ally=True)
+    enemy_rows = classify_by_initial_position(team_enemy, is_ally=False)
 
-    # 最终结构，加入 all: 所有坐标
+    # 最终结构，加入 all: 所有坐标和血量信息
     axie_info = {
         'ally': ally_rows,
         'enemy': enemy_rows,
-        'all': {}  # 新增：每个位置对应的坐标
+        'all': {}  # 包含每个位置对应的坐标和血量信息
     }
 
+    # 添加所有坐标和血量信息
     for pos_name, coords in axie_positions.items():
-        axie_info['all'][pos_name] = {'coords': coords}
+        health_percentage, is_alive = get_health_bar_info(*coords)
+        axie_info['all'][pos_name] = {
+            'coords': coords,
+            'health': health_percentage,
+            'is_alive': is_alive
+        }
 
     # 打印验证
     print("\n=== AXIE 阵型信息 ===")
@@ -422,7 +497,11 @@ def get_axie_info():
         for row in ['前排', '中排', '后排']:
             positions = axie_info[side][row]
             if positions:  # 只打印有单位的排
-                print(f"{row}: {', '.join(positions)}")
+                health_info = []
+                for pos in positions:
+                    health = axie_info['all'][pos]['health']
+                    health_info.append(f"{pos}(血量:{health:.1f}%)")
+                print(f"{row}: {', '.join(health_info)}")
 
     return axie_info
 
@@ -443,11 +522,19 @@ def select_target(hand_cards, axie_info):
                             axie_info['enemy'].get('后排', [])
                         )
                     elif target_side == 'ally' and target_row == 'all':
-                        targets = (
-                            axie_info['ally'].get('中排', []) +
-                            axie_info['ally'].get('前排', []) +
-                            axie_info['ally'].get('后排', [])
-                        )
+                        # 对confident卡特殊处理,优先选择中排
+                        if card['name'] == 'confident':
+                            targets = (
+                                axie_info['ally'].get('中排', []) +
+                                axie_info['ally'].get('后排', []) +
+                                axie_info['ally'].get('前排', [])
+                            )
+                        else:
+                            targets = (
+                                axie_info['ally'].get('前排', []) +
+                                axie_info['ally'].get('中排', []) +
+                                axie_info['ally'].get('后排', [])
+                            )
                     else:
                         targets = []
 
@@ -468,40 +555,102 @@ def select_target(hand_cards, axie_info):
     return all_cards
 
 
-def keep_card(card, fragment_cost, keep_priority_cards=['little_branch', 'puppy_ear', 'hero']):
-    # 如果不是优先保留的卡片且不是zeal，直接返回
-    if card['name'] not in keep_priority_cards and card['name'] != 'zeal':
-        return False
-        
+def play_zeal(cards):
+    """
+    处理zeal卡的使用策略
+    :param cards: 包含zeal卡信息的列表
+    """
+    priority_cards = ['mini_little_branch', 'mini_puppy_ear', 'mini_hero', 'mini_confident']
+    zeal_count = len(cards)
+    used_targets = set()  # 记录已使用的目标卡片
+    
+    print(f"[INFO] 检测到 {zeal_count} 张 zeal 卡")
+    time.sleep(3)
+    # 根据zeal卡数量决定策略
+    if zeal_count == 1:
+        # 只有一张就直接使用
+        _use_single_zeal(cards[0], priority_cards, used_targets)
+    elif zeal_count == 2:
+        # 两张只使用一张
+        _use_single_zeal(cards[0], priority_cards, used_targets)
+    elif zeal_count >= 3:
+        # 三张或以上使用两张
+        for i in range(2):
+            _use_single_zeal(cards[i], priority_cards, used_targets)
+
+def keep_card(fragment_cost):
+    """
+    尝试保留卡片，尽可能用光碎片
+    :param fragment_cost: 当前这次保留需要消耗的碎片数量
+    :return: 是否成功保留任何卡片
+    """
     # 在点击keep之前获取碎片数量
     _, current_fragment = get_energy_info()
     print(f"[INFO] 当前碎片数量: {current_fragment}，需要消耗: {fragment_cost}")
     
     # 检查是否有足够的碎片
     if current_fragment < fragment_cost:
-        print(f"[WARN] 碎片不足，无法保留卡片 {card['name']}（需要 {fragment_cost} 碎片，当前 {current_fragment} 碎片）")
+        print(f"[WARN] 碎片不足，无法保留卡片（需要 {fragment_cost} 碎片，当前 {current_fragment} 碎片）")
         return False
 
-    # 点击保留按钮
+    # 点击保留按钮并设置搜索区域
     keep_pos = image('keep')
     if keep_pos:
         # 移动到keep按钮下方100像素的位置
-        x, y = keep_pos
-        pyautogui.moveTo(x, y + 100)
+        keep_x, keep_y = keep_pos
+        print(f"[DEBUG] keep_x: {keep_x}, keep_y: {keep_y}")
+        pyautogui.moveTo(keep_x, keep_y + 100)
         time.sleep(1)  # 等待动画效果
 
-    # 构建mini卡片名称
-    mini_card_name = f"mini_{card['name']}"
-    print(f"[SEARCH] 查找要保留的卡片图片: {mini_card_name}")
-    
-    # 查找并点击对应的mini卡片
-    if not image(mini_card_name):
-        print(f"[ERROR] 未找到要保留的卡片图片: {mini_card_name}")
-        image('cancel')
+        # 设置搜索区域，以keep按钮位置为基准
+        # 计算搜索区域的左上角坐标和宽高
+        x1 = keep_x  # 左上角x坐标
+        y1 = keep_y - 680  # 左上角y坐标（向上偏移）
+        x2 = keep_x + 1150 # 向右搜索1150像素
+        y2 = keep_y  
+        
+        # 搜索区域：(左上角x, 左上角y, 宽度, 高度)
+        search_region = (x1, y1, x2, y2)
+        print(f"[DEBUG] 搜索区域: 左上({x1}, {y1}), 右下({x2}, {y2})")
+
+        # 遍历所有优先保留的卡片
+        keep_priority_cards = ['little_branch', 'zeal', 'puppy_ear', 'hero']
+        found_count = 0  # 找到的卡片数量
+        total_cost = 0  # 总消耗的碎片
+
+        for card_name in keep_priority_cards:
+            # 计算下一张卡需要的碎片
+            next_cost = found_count + 1
+            # 如果总消耗会超过当前碎片，就停止
+            if total_cost + next_cost > current_fragment:
+                break
+
+            # 构建mini卡片名称
+            mini_card_name = f"mini_{card_name}"
+            print(f"[SEARCH] 查找要保留的卡片图片: {mini_card_name}")
+            
+            # 在指定区域内查找并点击对应的mini卡片
+            if image(mini_card_name, region=search_region):
+                pyautogui.moveTo(100, 100)
+                print(f"[INFO] 找到卡片 {card_name}，选择保留")
+                found_count += 1
+                total_cost += next_cost
+
+        # 如果找到了要保留的卡片
+        if found_count > 0:
+            # 按下回车确认保留
+            pyautogui.press('enter')
+            print(f"[INFO] 成功保留 {found_count} 张卡片，总共消耗 {total_cost} 碎片")
+            return True
+        else:
+            # 如果没找到任何卡片
+            image('cancel')
+            pyautogui.moveTo(100, 100)
+            print("[INFO] 未找到任何可以保留的卡片")
+            return False
+    else:
+        print("[INFO] 未找到keep按钮")
         return False
-    pyautogui.press('enter')
-    print(f"[INFO] 成功保留卡片 {card['name']}，消耗 {fragment_cost} 碎片")
-    return True
 
 def _use_single_zeal(card, priority_cards, used_targets):
     """
@@ -525,6 +674,7 @@ def _use_single_zeal(card, priority_cards, used_targets):
             print(f"[ACTION] 找到并选择 {target} 作为 zeal 目标")
             used_targets.add(target)  # 记录已使用的目标
             pyautogui.press('enter')
+            pyautogui.moveTo(100, 100)
             time.sleep(1)
             return True
         else:
@@ -534,41 +684,6 @@ def _use_single_zeal(card, priority_cards, used_targets):
     image('cancel')
     time.sleep(1)
     return False
-
-def play_zeal(cards):
-    """
-    处理zeal卡的使用策略
-    :param cards: 包含zeal卡信息的列表
-    """
-    priority_cards = ['mini_little_branch', 'mini_puppy_ear', 'mini_hero', 'mini_confident']
-    zeal_count = len(cards)
-    used_targets = set()  # 记录已使用的目标卡片
-    success_count = 0  # 记录成功使用的卡片数量
-    
-    print(f"[INFO] 检测到 {zeal_count} 张 zeal 卡")
-    
-    # 根据zeal卡数量决定策略
-    if zeal_count == 1:
-        # 只有一张就直接使用
-        print("[INFO] 使用第1/1张zeal卡")
-        _use_single_zeal(cards[0], priority_cards, used_targets)
-    elif zeal_count == 2:
-        # 两张使用一张保留一张
-        print("[INFO] 使用第1/2张zeal卡")
-        if _use_single_zeal(cards[0], priority_cards, used_targets):
-            success_count += 1
-            # 尝试保留第二张，消耗1碎片
-            if keep_card(cards[1], 1):
-                print("[INFO] 成功保留一张 zeal 卡")
-    elif zeal_count >= 3:
-        # 三张或以上使用两张保留一张
-        for i in range(2):
-            print(f"[INFO] 使用第{i+1}/{zeal_count}张zeal卡")
-            if _use_single_zeal(cards[i], priority_cards, used_targets):
-                success_count += 1
-        # 尝试保留最后一张，只消耗1碎片
-        if success_count > 0 and keep_card(cards[2], 1):  # 修改这里，固定消耗1碎片
-            print("[INFO] 成功保留一张 zeal 卡，消耗 1 碎片")
 
 def play_innocent_lamb(card):
     print(f"[ACTION] 按下快捷键 {card['hotkey']} 使用innocent_lamb")
@@ -580,14 +695,11 @@ def play_innocent_lamb(card):
     pyautogui.press('enter')
     time.sleep(1)
 
-def play_cards(axie_info, hand_cards, energy, fragment):
-    initial_energy = energy
-    initial_fragment = fragment
-    has_special_card = False
-    keep_priority_cards = ['little_branch', 'puppy_ear', 'hero']
-    keep_count = 0  # 记录已保留的卡片数量
-    zeal_cards = []  # 收集所有zeal卡
+def play_cards(axie_info, hand_cards, energy):
+    used_cards = 0  # 记录已使用的卡片数量（不包括zeal卡）
+    fury = False  # 标记本轮是否打出过confident或little_branch
 
+    # 获取处理过的卡牌列表（包含目标信息）
     all_cards = select_target(hand_cards, axie_info)
     
     # 收集所有zeal卡
@@ -613,13 +725,15 @@ def play_cards(axie_info, hand_cards, energy, fragment):
         if card['name'] == 'innocent_lamb':
             print(f"[ACTION] 使用 {card['name']}（0 能量）")
             play_innocent_lamb(card)
+            used_cards += 1  # 增加innocent_lamb的计数
             continue
 
         # 普通卡牌出牌逻辑
         print(f"[ACTION] 使用 {card['name']}（{card['energy']} 能量）")
         print(f"[ACTION] 按下快捷键 {card['hotkey']} 使用{card['name']}")
         pyautogui.press(str(card['hotkey']))
-        # time.sleep(1)
+        if card['name'] != 'zeal':
+            used_cards += 1  # 记录使用的非zeal卡数量
         
         # 如果卡牌需要选择目标
         if card.get('target') and card.get('target_candidates'):
@@ -637,8 +751,8 @@ def play_cards(axie_info, hand_cards, energy, fragment):
                 else:
                     row = "未知排"
                 print(f"[ACTION] 选择目标位置: {side}{row}（{pos_name}）")
-                pyautogui.moveTo(*target)
                 time.sleep(3)
+                pyautogui.moveTo(*target)             
                 pyautogui.click()
                 image("background", threshold=0.65)
 
@@ -648,27 +762,36 @@ def play_cards(axie_info, hand_cards, energy, fragment):
 
         # 特殊卡检测逻辑
         if card['name'] in ['confident', 'little_branch']:
+            
             print(f"[INFO] 检测 {card['name']} 使用后的能量值...")
             new_energy, new_fragment = get_energy_info()
             if new_energy > energy:  # 如果能量增加了
+                fury = True
                 print(f"[INFO] 能量值增加: {energy} -> {new_energy}")
                 energy = new_energy
-                fragment = new_fragment
                 
                 # 重新检测手牌（使用彩色检测）
                 print("[INFO] 检测能量变化后的手牌信息...")
-                hand_cards = detect_cards(color=True)  # 中途检测不设置延时
+                hand_cards = detect_cards()  # 中途检测不设置延时
                 all_cards = select_target(hand_cards, axie_info)
+                
+                # 更新zeal卡列表
+                zeal_cards = [card for card in all_cards if card['name'] == 'zeal']
+                print(f"[INFO] 更新后的zeal卡数量: {len(zeal_cards)}")
                 
                 # 按优先级排序所有卡片
                 sorted_cards = sorted(all_cards, 
                     key=lambda c: card_priority.index(c['name']) if c['name'] in card_priority else len(card_priority)
                 )
                 
-                # 处理所有卡片
+                # 处理所有非zeal卡片
                 for new_card in sorted_cards:
                     # 跳过zeal卡，稍后统一处理
                     if new_card['name'] == 'zeal':
+                        continue
+
+                    # 跳过unknown卡，只计入手牌数量，不尝试打出
+                    if new_card['name'] == 'unknown':
                         continue
 
                     if new_card['energy'] > energy:
@@ -678,105 +801,108 @@ def play_cards(axie_info, hand_cards, energy, fragment):
                     print(f"[ACTION] 使用卡片 {new_card['name']}（{new_card['energy']} 能量）")
                     print(f"[ACTION] 按下快捷键 {new_card['hotkey']} 使用{new_card['name']}")
                     pyautogui.press(str(new_card['hotkey']))
-                    # time.sleep(1)
                     
                     if new_card.get('target') and new_card.get('target_candidates'):
                         target = new_card['target_pos']
                         if target:
-                            pyautogui.moveTo(*target)
-                            time.sleep(1)
+                            time.sleep(3)
+                            pyautogui.moveTo(*target)                       
                             pyautogui.click()
                             image("background", threshold=0.65)
                     
                     if new_card['energy'] > 0:
                         energy = max(0, energy - new_card['energy'])
+                        print(f"[INFO] 使用后剩余能量: {energy}")
 
         elif card['name'] == 'hero':
             print("[INFO] 检测 hero 使用后的手牌数量...")
             
+            # 计算当前理论剩余手牌数量
+            total_cards = sum(len(pos['cards']) for positions in hand_cards.values() for pos in positions)
+            remaining_cards = total_cards - used_cards
+            print(f"[INFO] 总手牌数量: {total_cards}, 已使用: {used_cards}, 理论剩余: {remaining_cards}")
+            
             # 快速检测手牌数量（不移动鼠标）
-            current_cards = detect_cards(color=True, quick_check=True)  # 中途检测不设置延时
-            
-            # 计算原有手牌数量
-            original_count = sum(len(pos['cards']) for positions in hand_cards.values() for pos in positions)
-            print(f"[INFO] 原有手牌数量: {original_count}, 当前手牌数量: {current_cards['total_cards']}")
-            
-            # 如果手牌数量增加了
-            if current_cards['total_cards'] > original_count:
-                print("[INFO] 手牌数量增加，重新检测手牌信息...")
-                hand_cards = detect_cards(color=True)  # 中途检测不设置延时
-                all_cards = select_target(hand_cards, axie_info)
+            time.sleep(2)
+            current_cards = detect_cards(quick_check=True)
+            if current_cards and 'total_cards' in current_cards:
+                print(f"[INFO] 当前实际手牌数量: {current_cards['total_cards']}")
                 
-                # 按优先级排序所有卡片
-                sorted_cards = sorted(all_cards, 
-                    key=lambda c: card_priority.index(c['name']) if c['name'] in card_priority else len(card_priority)
-                )
-                
-                # 处理所有卡片
-                for new_card in sorted_cards:
-                    # 跳过zeal卡，稍后统一处理
-                    if new_card['name'] == 'zeal':
-                        continue
-
-                    if new_card['energy'] > energy:
-                        print(f"[WARN] 能量不足，跳过 {new_card['name']}（需要 {new_card['energy']}，剩余 {energy}）")
-                        continue
-
-                    print(f"[ACTION] 使用卡片 {new_card['name']}（{new_card['energy']} 能量）")
-                    print(f"[ACTION] 按下快捷键 {new_card['hotkey']} 使用{new_card['name']}")
-                    pyautogui.press(str(new_card['hotkey']))
-                    # time.sleep(1)
+                # 如果实际手牌数量大于理论数量，说明hero增加了手牌
+                if current_cards['total_cards'] > remaining_cards:
+                    print("[INFO] 手牌数量增加，重新检测手牌信息...")
+                    # 重新获取当前能量值
+                    energy, _ = get_energy_info()
+                    print(f"[INFO] 当前能量: {energy}")
                     
-                    if new_card.get('target') and new_card.get('target_candidates'):
-                        target = new_card['target_pos']
-                        if target:
-                            pyautogui.moveTo(*target)
-                            time.sleep(1)
-                            pyautogui.click()
-                            image("background", threshold=0.65)
+                    hand_cards = detect_cards()  
+                    if not hand_cards:  # 如果检测失败，跳过后续处理
+                        print("[WARN] 手牌检测失败，跳过后续处理")
+                        continue
+                        
+                    all_cards = select_target(hand_cards, axie_info)
                     
-                    if new_card['energy'] > 0:
-                        energy = max(0, energy - new_card['energy'])
+                    # 更新zeal卡列表
+                    zeal_cards = [card for card in all_cards if card['name'] == 'zeal']
+                    print(f"[INFO] 更新后的zeal卡数量: {len(zeal_cards)}")
+                    
+                    # 按优先级排序所有卡片
+                    sorted_cards = sorted(all_cards, 
+                        key=lambda c: card_priority.index(c['name']) if c['name'] in card_priority else len(card_priority)
+                    )
+                    
+                    # 处理所有非zeal卡片
+                    for new_card in sorted_cards:
+                        # 跳过zeal卡，稍后统一处理
+                        if new_card['name'] == 'zeal':
+                            continue
+
+                        # 跳过unknown卡，只计入手牌数量，不尝试打出
+                        if new_card['name'] == 'unknown':
+                            continue
+
+                        if new_card['energy'] > energy:
+                            print(f"[WARN] 能量不足，跳过 {new_card['name']}（需要 {new_card['energy']}，剩余 {energy}）")
+                            continue
+
+                        print(f"[ACTION] 使用卡片 {new_card['name']}（{new_card['energy']} 能量）")
+                        print(f"[ACTION] 按下快捷键 {new_card['hotkey']} 使用{new_card['name']}")
+                        pyautogui.press(str(new_card['hotkey']))
+                        
+                        if new_card.get('target') and new_card.get('target_candidates'):
+                            target = new_card['target_pos']
+                            if target:
+                                time.sleep(3)
+                                pyautogui.moveTo(*target)                       
+                                pyautogui.click()
+                                image("background", threshold=0.65)
+                        
+                        if new_card['energy'] > 0:
+                            energy = max(0, energy - new_card['energy'])
+                            print(f"[INFO] 使用后剩余能量: {energy}")
+            else:
+                print("[WARN] 手牌检测失败，跳过后续处理")
 
     # 如果有zeal卡，处理zeal卡
     if zeal_cards:
+        print(f"[INFO] 开始处理 {len(zeal_cards)} 张zeal卡")
         play_zeal(zeal_cards)
-        # 等待动画效果结束后更新碎片
-        # time.sleep(2)
 
-    # 检查是否有碎片可用于保留卡片
+    # 检查是否有需要保留的卡片
     _, current_fragment = get_energy_info()
     if current_fragment == 0:
-        print("[INFO] 当前碎片为0，跳过保留卡片检测")
+        print("[INFO] 当前碎片为0，跳过保留卡片")
     else:
-        # 最后统一处理保留卡片
-        print(f"[INFO] 检测可保留的卡片")
-        # 使用灰度检测手牌
-        hand_cards = detect_cards(color=False)  # 中途检测不设置延时
-        
-        # 收集所有卡片
-        all_cards = []
-        for role, positions in hand_cards.items():
-            for pos in positions:
-                for card in pos['cards']:
-                    all_cards.append({'name': card['name']})
-        
-        # 按优先级排序所有卡片
-        sorted_cards = sorted(all_cards, 
-            key=lambda c: card_priority.index(c['name']) if c['name'] in card_priority else len(card_priority)
-        )
-        
-        # 处理所有可保留的卡片
-        for card in sorted_cards:
-            if card['name'] in keep_priority_cards:
-                keep_count += 1
-                print(f"[INFO] 尝试保留 {card['name']} 卡")
-                if not keep_card(card, keep_count):
-                    print(f"[INFO] 停止保留卡片，碎片不足")
-                    break
+        print(f"[INFO] 尝试保留优先卡片")
+        keep_card(current_fragment)  
 
     print("[INFO] 出牌结束")
     pyautogui.press("E")
+    # 如果本轮打出过confident或little_branch，点击end后调用send_cosmetic
+    if fury:
+        for _ in range(random.randint(1, 3)):
+            send_cosmetic()
+            time.sleep(random.randint(2, 6))
 
 
 def in_game():
@@ -789,18 +915,30 @@ def enter_game():
     if not in_game():
         print("当前不在游戏中。")
         subprocess.Popen(exe_path)
-        loading(['play', 'x'], check_interval=3)
+        loading(['play', 'x_origin'], check_interval=3)
 
 def close_game():
-    subprocess.run(["taskkill", "/f", "/im", "AxieInfinity-Origins.exe"], shell=True)
-    time.sleep(10)
+    try:
+        # 检查进程是否存在
+        result = subprocess.run(["tasklist", "/FI", "IMAGENAME eq AxieInfinity-Origins.exe"], 
+                              capture_output=True, text=True, shell=True)
+        if "AxieInfinity-Origins.exe" in result.stdout:
+            print("正在关闭游戏进程...")
+            subprocess.run(["taskkill", "/f", "/im", "AxieInfinity-Origins.exe"], shell=True)
+            print("游戏进程已关闭")
+        else:
+            print("游戏进程未运行")
+        time.sleep(10)
+    except Exception as e:
+        print(f"关闭游戏时发生错误: {str(e)}")
+        time.sleep(10)
 
 def in_battle():
     return image('icon') is not None
 
 def enter_battle(choice):
     time.sleep(1)
-    image("x")
+    image("x_origin")
     if not in_battle():
         print("当前不在战斗中。")
         if image('next'):
@@ -822,22 +960,19 @@ def surrender(n):
             close_game()
         print(f"第 {i + 1} 次 surrender")  # 显示当前第几次，而不是总次数 n
         enter_game()
-        image('tap')
-        enter_battle(no_pref)
+        image('tap', color=False)
+        enter_battle("no_pref")
 
-        loading(['icon'], check_interval=3)
+        loading(['icon'], check_interval=3, timeout=5)
         time.sleep(random.randint(5,15))
 
         image('menu')
         image('surrender')
         image('confirm_surrender')
 
-        loading(['tap'], check_interval=3, click_times=0)
+        loading(['tap'], check_interval=3, click_times=0, color=False)
         time.sleep(3)
-        image('tap')
-
-
-    print("surrender 循环结束")
+        image('tap', color=False)
 
 
 
@@ -845,57 +980,148 @@ def fight(n):
     count = 0  # 记录找到tap的次数
     victory_count = 0  # 记录胜利次数
     defeat_count = 0  # 记录失败次数
+    last_result = None  # 记录最后一次战斗的结果
 
+    print("[INFO] 进入fight函数...")
+    
     while count < n:
-        enter_game()
-        enter_battle(go_second)
-        
-        # 等待 'end' 或 'tap' 图像加载，超时后进行胜负判断
-        found_image = loading(['end', 'tap'], check_interval=1, click_times=0, timeout=45)
+        try:
+            print("[INFO] 准备进入战斗...")
+            enter_game()
+            enter_battle("go_second")
+            
+            # 等待 'end' 或 'tap' 图像加载，超时后进行胜负判断
+            print("[INFO] 等待战斗结束...")
+            found_image = loading(['end', 'tap'], check_interval=1, click_times=0, timeout=45, color=False)
+            print(f"[INFO] 检测到图像: {found_image}")
 
-        if found_image == 'tap':
-            time.sleep(1)
-            print("[INFO] 总场次+1")
-            count += 1  # 只在找到tap时累加
-            # 检查是否胜利或失败
+            if found_image == 'tap':
+                time.sleep(1)
+                print("[INFO] 总场次+1")
+                count += 1  # 只在找到tap时累加
+                # 检查是否胜利或失败
+                print("[INFO] 检查胜负状态...")
+                defeat = loading(['defeat'], check_interval=0.1, click_times=0, threshold=0.99, timeout=1)
+                victory = loading(['victory'], check_interval=0.1, click_times=0, threshold=0.99, timeout=1)
 
-            defeat = loading(['defeat'], check_interval=0.1, click_times=0, threshold=0.99, timeout=1)
-            victory = loading(['victory'], check_interval=0.1, click_times=0, threshold=0.99, timeout=1)
+                if victory:
+                    image("tap", color=False)
+                    print("[INFO] 胜场+1")
+                    victory_count += 1  # 找到胜利图像时增加胜利次数
+                    last_result = 'victory'
+                elif defeat:
+                    image("tap", color=False)
+                    print("[INFO] 负场+1")
+                    defeat_count += 1  # 找到失败图像时增加失败次数
+                    last_result = 'defeat'
 
-            if victory:
-                image("tap")
-                print("[INFO] 胜场+1")
-                victory_count += 1  # 找到胜利图像时增加胜利次数
-            elif defeat:
-                image("tap")
-                print("[INFO] 负场+1")
-                defeat_count += 1  # 找到失败图像时增加失败次数
+                print(f"第 {count} 次 fight | 胜利: {victory_count} 失败: {defeat_count}")  # 打印每次战斗的结果
+                continue
 
-            print(f"第 {count} 次 fight | 胜利: {victory_count} 失败: {defeat_count}")  # 打印每次战斗的结果
+            if found_image == 'end':
+                print("[INFO] 读取axie站位信息...")
+                axie_info = get_axie_info()
+
+                print("[ACTION] 读取手牌信息...")
+                hand_cards = detect_cards(color=False)  
+
+                print("[ACTION] 读取能量...")
+                energy, _ = get_energy_info()  # 解包元组，只取energy值
+                
+                print("[ACTION] 开始出牌...")
+                play_cards(axie_info, hand_cards, energy)
+                
+        except Exception as e:
+            print(f"[ERROR] fight函数发生错误: {str(e)}")
             continue
 
-        if found_image == 'end':
-            print("[INFO] 读取axie站位信息...")
-            axie_info = get_axie_info()
-
-            print("[ACTION] 读取手牌信息...")
-            hand_cards = detect_cards(color=True, n=1)  # 第一次检测设置1秒延时
-
-            print("[ACTION] 读取能量和碎片...")
-            energy, fragment = get_energy_info()
-            
-            print("[ACTION] 开始出牌...")
-            play_cards(axie_info, hand_cards, energy, fragment)
-
     print("fight循环结束")
-    return
+    print(f"[INFO] 最终战斗结果: {last_result}")
+    return last_result if last_result else 'defeat'  # 如果没有结果，默认返回defeat
+
+def send_cosmetic():
+    image('cosmetic')
+    # 找到icon坐标
+    icon_pos = image('icon', click_times=0)
+    if not icon_pos:
+        print('[ERROR] 未找到icon')
+        return
+    icon_x, icon_y = icon_pos
+    # 计算第一个点坐标
+    start_x = icon_x - 540
+    start_y = icon_y + 80
+    # 4行3列
+    rows, cols = 4, 3
+    row_gap, col_gap = 150, 145
+    # 随机选择一个点
+    row = random.randint(0, rows - 1)
+    col = random.randint(0, cols - 1)
+    click_x = start_x + col * col_gap
+    click_y = start_y + row * row_gap
+    print(f'[ACTION] 点击第{row+1}行,第{col+1}列, 坐标({click_x},{click_y})')
+    pyautogui.click(click_x, click_y)
 
 
 
+def main():
+    victory_count = 0
+    defeat_count = 0
+    consecutive_defeats = 0  # 记录连续失败次数，仅用于显示
+    pending_defeats = 0  # 记录需要抵消的失败次数
+    
+    print("[INFO] 开始执行程序...")
+    
+    while True:
+        try:
+            print("[INFO] 开始新的战斗...")
+            # 执行一次战斗，并获取胜负状态
+            result = fight(30)
+            print(f"[INFO] 战斗结果: {result}")
+            
+            if result == 'victory':
+                victory_count += 1
+                consecutive_defeats = 0  # 重置连续失败计数
+                print(f"[INFO] 当前战绩 - 胜场: {victory_count} 负场: {defeat_count}")
+                
+                # 如果有待抵消的失败，执行surrender
+                if pending_defeats > 0:
+                    print(f"[INFO] 有待抵消的失败次数: {pending_defeats}")
+                    surrender(1)
+                    pending_defeats -= 1  # 减少一次待抵消的失败
+                    defeat_count -= 1  # 减少一次失败计数
+                else:
+                    # 如果没有待抵消的失败，继续战斗
+                    print("[INFO] 没有待抵消的失败，继续战斗")
+                    continue
+                    
+            elif result == 'defeat':
+                defeat_count += 1
+                pending_defeats += 1  # 增加待抵消的失败次数
+                consecutive_defeats += 1  # 增加连续失败计数
+                print(f"[INFO] 当前战绩 - 胜场: {victory_count} 负场: {defeat_count}")
+                print(f"[INFO] 连续失败次数: {consecutive_defeats}")
+                print(f"[INFO] 待抵消的失败次数: {pending_defeats}")
+                # 无论失败多少次，都继续战斗
+                print("[INFO] 继续战斗...")
+                continue
+            
+            # 如果胜场和负场相等，且没有待抵消的失败，退出循环
+            if victory_count == defeat_count and pending_defeats == 0:
+                print("[INFO] 胜场和负场平衡，且没有待抵消的失败，结束程序")
+                break
+                
+        except Exception as e:
+            print(f"[ERROR] 发生错误: {str(e)}")
+            print("[INFO] 尝试继续执行...")
+            continue
+    
+    print("[INFO] 程序执行完毕")
+    close_game()
+
+if __name__ == "__main__":
+    get_health_bar_info()
 
 
-print("=== 主程序 ===")
-detect_cards(color=True, n=1)
 
 
 

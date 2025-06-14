@@ -4,23 +4,23 @@ axie_cards = {
         ("zeal", 0, False, None, None),  # 0费
         ("confident", 0, True, "ally", "all"),  # 0费
         ("little_branch", 2, False, None, None),
-        ("puppy_ear", 1, False, None, None),
-        ("hero", 1, False, None, None),
-        ("tiny_dino", 1, False, None, None)
+        ("puppy_ear", 1, False, None, None),      
+        ("tiny_dino", 1, False, None, None),
+        ("hero", 1, False, None, None)
      
     ],
     "back1523": [
         ("zeal", 0, False, None, None),  # 0费
         ("confident", 0, True, "ally", "all"),  # 0费 
         ("cattail", 1, True, "ally", "all"),
-        ("innocent_lamb", 0, False, None, None),  # 0费
-        ("lagging", 1, True, "ally", "all"),  
+        ("innocent_lamb", 0, False, None, None),  
+        ("rose_bud", 1, True, "ally", "all"),  
         ("mint", 1, False, None, None)
     ],
     "front1409": [
         ("cattail", 1, True, "ally", "all"),
         ("confident", 0, True, "ally", "all"),  # 0费
-        ("zeal", 0, False, None, None),  # 0费
+        ("zeal", 0, False, None, None),  # 0费 
         ("lotus", 1, True, "ally", "all"),
         ("rose_bud", 1, True, "ally", "all"),
         ("bidens", 1, True, "ally", "all")
@@ -32,7 +32,7 @@ axie_cards = {
         ("energy_coin_card", 0, False, None, None)
     ],
     "glove": [
-        ("energy_coin_card", 0, True, "ally", "all")  # 0费
+        ("glove_card", 0, True, "ally", "all")  # 0费
     ],
     "goo": [
         ("goo_card", 0, False, None, None)  # 0费
@@ -58,8 +58,8 @@ axie_cards = {
 
 }
 
-card_priority = [
-    'innocent_lamb', 'confident', 'little_branch', 'puppy_ear', 'hero', 'zeal', 'tiny_dino',
+card_priority = ['innocent_lamb',
+    'confident', 'little_branch', 'puppy_ear', 'zeal', 'tiny_dino','hero',
     'energy_coin_card', 'cattail', 'mint', 'rose_bud', 'biden', 'lotus', 'lagging',
     'glove', 'sword', 'knife', 'shield', 'axe'
 ]
@@ -70,7 +70,7 @@ card_to_detect= ['glove', 'sword', 'knife', 'shield', 'axe', "blackmail", "energ
 thresholds = {
     "blackmail": 0.9,
     "energy_coin": 0.9,
-    "back1523": 0.65,
+    "back1523": 0.75,
     "middle4548": 0.65,
     "front1409": 0.65,
     "goo": 0.9,
