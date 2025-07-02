@@ -1,0 +1,169 @@
+# main.py
+import cv2
+import pyautogui
+import numpy as np
+import os
+import time
+import subprocess
+
+def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=True, gray_diff_threshold=15):
+    if not png.endswith('.png'):
+        png += '.png'
+    image_path = os.path.join('pic', png)
+    if not os.path.exists(image_path):
+        print(f"[ERROR] 图片不存在: {image_path}")
+        return None
+
+    template = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    if template is None:
+        print(f"[ERROR] 图片加载失败: {image_path}")
+        return None
+
+    region = region or (0, 0, *pyautogui.size())
+    x1, y1, x2, y2 = region
+    screenshot = pyautogui.screenshot(region=(x1, y1, x2 - x1, y2 - y1))
+    screen_img = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+
+    if color:
+        # 彩色匹配
+        result = cv2.matchTemplate(screen_img, template, cv2.TM_CCOEFF_NORMED)
+    else:
+        # 灰度匹配
+        screen_gray = cv2.cvtColor(screen_img, cv2.COLOR_BGR2GRAY)
+        template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(screen_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+
+    if max_val < threshold:
+        # print(f"[MISS] 没有找到 {png}")
+        return None
+
+    if color:
+        match_area = screen_img[
+            max_loc[1]:max_loc[1] + template.shape[0],
+            max_loc[0]:max_loc[0] + template.shape[1]
+        ]
+
+        diff_rg = np.abs(match_area[:, :, 2] - match_area[:, :, 1])
+        diff_rb = np.abs(match_area[:, :, 2] - match_area[:, :, 0])
+        diff_gb = np.abs(match_area[:, :, 1] - match_area[:, :, 0])
+        mean_diff = np.mean((diff_rg + diff_rb + diff_gb) / 3.0)
+
+        if mean_diff < gray_diff_threshold:
+            print(f"[FAIL] {png} 匹配区域颜色太灰（均差≈{mean_diff:.2f}, 未识别出图片")
+            return None
+
+    center_x = max_loc[0] + template.shape[1] // 2 + x1 + offset[0]
+    center_y = max_loc[1] + template.shape[0] // 2 + y1 + offset[1]
+
+    if click_times > 0:
+        for _ in range(click_times):
+            pyautogui.click(center_x, center_y)
+            time.sleep(0.1)
+        print(f"[ACTION] 点击 {png}")
+
+    return (center_x, center_y)
+
+def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=50,
+            return_all_positions=False, color=True):
+    start_time = time.time()
+    print(f"正在加载 {image_names} ... ")
+    found_positions = {}
+
+    while True:
+        for image_name in image_names:
+            print(f"尝试匹配图片: {image_name}")
+            pos = image(image_name, threshold=threshold, click_times=click_times, color=color)
+            if pos is not None:
+                print(f"成功匹配到图片: {image_name}")
+                found_positions[image_name] = pos
+                # 找到任意一个图片就返回
+                return {image_name: pos}
+
+        # 检查是否超时
+        if timeout and (time.time() - start_time) > timeout:
+            elapsed_time = time.time() - start_time
+            print(f"加载超时 ({elapsed_time:.1f}秒)")
+            return None
+
+        time.sleep(check_interval)
+
+def in_game():
+    return image('classic', offset=(100, 0), gray_diff_threshold=12) is not None
+
+
+def enter_game():
+    if image("error"):
+        close_game()
+        time.sleep(60)
+    if not in_game():
+        print("当前不在游戏中。")
+        subprocess.Popen(r"E:\Axie Classic\axie_game.exe")
+        loading(['classic_play'], check_interval=3)
+
+
+def close_game():
+    try:
+        # 检查进程是否存在
+        result = subprocess.run(["tasklist", "/FI", "IMAGENAME eq AxieInfinity-Origins.exe"],
+                                capture_output=True, text=True, shell=True)
+        if "AxieInfinity-Origins.exe" in result.stdout:
+            print("正在关闭游戏进程...")
+            subprocess.run(["taskkill", "/f", "/im", "axie_game.exe"], shell=True)
+            print("游戏进程已关闭")
+        else:
+            print("游戏进程未运行")
+        time.sleep(10)
+    except Exception as e:
+        print(f"关闭游戏时发生错误: {str(e)}")
+        time.sleep(10)
+
+def in_rank_mode():
+    return image('classic_rank_mode', click_times=0) is not None
+
+def enter_battle():      
+    if not in_rank_mode():
+        print("当前不在排位賽中。")
+        image('classic_arena')
+        if image('classic_play'):
+            time.sleep(2)
+            image('classic_arena')
+    else:
+        print("当前已经在战斗中。")
+
+while True:
+    enter_game()
+    enter_battle()
+    print("开始检测战斗状态...")
+    result = loading(['classic_end', 'classic_victory', 'classic_defeat'], 
+                    click_times=0, 
+                    threshold=0.7)
+    
+    if result:
+        found_image = list(result.keys())[0]  # 获取找到的图片名称
+        print(f"检测到状态: {found_image}")
+        
+        if 'classic_end' in result:
+            for _ in range(5):
+                image('classic_0.png', offset=(0, 60), click_times=2)
+                pyautogui.moveRel(0, -100)
+                image('classic_1.png', offset=(0, 60), click_times=2) 
+                pyautogui.moveRel(0, -100)
+            print("出牌结束")
+            
+        if 'classic_defeat' in result:
+            print("失败")
+            image('classic_defeat', click_times=1)
+            time.sleep(3)
+            pyautogui.moveRel(0, 0)
+            pyautogui.click()
+            
+        if 'classic_victory' in result:
+            print("胜利")
+            break
+    
+    image('classic_end')
+            
+                        
+    

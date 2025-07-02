@@ -6,7 +6,6 @@ import time
 import sys
 import subprocess
 
-
 def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=True, gray_diff_threshold=15):
     if not png.endswith('.png'):
         png += '.png'
@@ -41,9 +40,9 @@ def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=T
         return None
 
     match_area = screen_img[
-                 max_loc[1]:max_loc[1] + template.shape[0],
-                 max_loc[0]:max_loc[0] + template.shape[1]
-                 ]
+        max_loc[1]:max_loc[1] + template.shape[0],
+        max_loc[0]:max_loc[0] + template.shape[1]
+    ]
 
     if color:
         diff_rg = np.abs(match_area[:, :, 2] - match_area[:, :, 1])
@@ -62,7 +61,7 @@ def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=T
         for _ in range(click_times):
             pyautogui.click(center_x, center_y)
             time.sleep(1)
-        print(f"[ACTION] 点击 {png} {center_x, center_y} {threshold}")
+        print(f"[ACTION] 点击 {png} {center_x, center_y} {max_val}")
 
     return (center_x, center_y)
 
@@ -73,7 +72,7 @@ thresholds = {
     "tree3": 0.85,
     "tree4": 0.8,
     "tree5": 0.95,
-    "tree6": 0.95,
+    "tree6": 0.95,  
     "tree7": 0.9,
     "tree8": 0.9,
     "tree9": 0.9,
@@ -82,6 +81,7 @@ thresholds = {
     "stone4": 0.9,
     "precious": 0.8,
     "metal": 0.8
+
 
 }
 
@@ -160,14 +160,9 @@ def image_multi(png_list, thresholds=thresholds, region=None, min_x_distance=40,
     # 点击全局第一个通过筛选的点
     if click_times > 0 and first_valid_point:
         cx, cy = first_valid_point
-        for _ in range(click_times):
-            print(f"[INFO] 点击匹配点：({first_valid_template} {cx}, {cy})，匹配度：{first_valid_threshold:.3f}")
-            pyautogui.click(cx, cy)
-            time.sleep(1)
-            press('space')
-            pyautogui.click(cx, cy + 25)
-            time.sleep(1)
-            press('space')
+        print(f"[INFO] 点击匹配点：({first_valid_template} {cx}, {cy})，匹配度：{first_valid_threshold:.3f}")
+        pyautogui.click(cx, cy)
+        time.sleep(1)
 
     return results
 
@@ -181,6 +176,7 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         for image_name in image_names:
             pos = image(image_name, threshold=threshold, click_times=click_times, color=True)
             if pos is not None:
+
                 return image_name
 
         if timeout and (time.time() - start_time) > timeout:
@@ -189,11 +185,10 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
 
         time.sleep(check_interval)
 
-
 def drag(start_pos, end_pos, duration=1):
     start_x, start_y = start_pos
     end_x, end_y = end_pos
-
+    
     # 移动到起始位置
     pyautogui.moveTo(start_x, start_y)
     pyautogui.mouseDown(button='left')
@@ -227,7 +222,7 @@ def enter_game():
         subprocess.Popen(r"E:\Axie Infinity - Homeland\Homeland.exe")
         loading(["join"], click_times=2)
         loading(["acoin"])
-        image('x')
+        image('x_land')
         image('M')
     if image('exit'):
         time.sleep(60)
@@ -260,14 +255,24 @@ def collect(tree_count, stone_count):
         )
 
         tree_points = []
+        matched_key = None
         for key in tree_keys:
             if result.get(key):
                 tree_points = result[key]
+                matched_key = key
                 break
 
         if tree_points:
             cx, cy, _ = tree_points[0]
             clicked_points.append((cx, cy))
+            # 根据匹配到的图片类型执行不同的点击操作
+            if matched_key == 'tree1':
+                press('space')
+                pyautogui.click(cx, cy + 25)
+                time.sleep(1)
+                press('space')
+            else:
+                press('space')
         else:
             print("[MISS] 没有可砍的树了。")
             break
@@ -294,6 +299,7 @@ def collect(tree_count, stone_count):
         if stone_points:
             cx, cy, _ = stone_points[0]
             clicked_points.append((cx, cy))
+            press('space')
         else:
             print("[MISS] 没有可采的石头了。")
             break
@@ -311,8 +317,9 @@ def collect(tree_count, stone_count):
         time.sleep(10)
 
 
-def mine():
+def mine(plot='plot1'):
     image('acoin')
+    image('P')
     press('3')
     time.sleep(5)
 
@@ -325,52 +332,83 @@ def mine():
         return
 
     base_x, base_y = home_pos
-    # 定义矿的位置和自家的相对坐标列表，可以随时添加新的矿点
-    relative_positions = [(70, 45), (-462, 85), (-16, 85), (45, -195), (25, -70), (120, -20), (-115, 188), (-163, 112),
-                          (-250, 69),
-                          (-654, 124), (-531, -248), (475, -67), (563, -27), (650, 68), (381, 214), (-397, 277),
-                          (-498, 329),
-                          (-400, -68), (-350, -275), (-270, 240), (417, -137), (300, 260), (94, 407), (-450, 418),
-                          (210, 62)
-                          ]
 
-    # 遍历每个点
-    for dx, dy in relative_positions:
+    # 将坐标分为两组
+    plot1_positions = [
+        (-200, 140), (-350, 210), (-340, 60), (-640, 280), (-500, -30)
+    ]
+
+    plot2_positions = [
+        (70, 45), (-462, 85), (-16, 85), (45, -195), (25, -70),
+        (120, -20), (-115, 188), (-163, 112), (-250, 69),
+        (-654, 124), (-531, -248), (475, -67), (563, -27),
+        (650, 68), (381, 214), (-397, 277), (-498, 329),
+        (-400, -68), (-350, -275), (-270, -240), (417, -137),
+        (300, 260), (94, 407), (-450, 418), (210, 62)
+    ]
+
+    # 根据plot参数选择要操作的坐标组
+    positions = plot1_positions if plot == 'plot1' else plot2_positions
+
+    # 遍历选定组的每个点
+    for dx, dy in positions:
         # 移动到目标位置
         target_x = base_x + dx
         target_y = base_y + dy
         pyautogui.moveTo(target_x, target_y)
-        time.sleep(1)
-        if not image('gem_ore', click_times=0):
-            press('space')
-            press('space')
+        press('space')
+        press('space')
 
-    print("[INFO] 矿采集结束")
+    print(f"[INFO] {plot}矿采集结束")
     press('1')
     time.sleep(5)
 
-
+    
 def craft_food():
     image('P')
-    if image('cuddle_kitchen1', click_times=2):
-        time.sleep(2)
-        image('claim'), time.sleep(1)
-        image('ok', color=False), time.sleep(1)
-        image('baguette')
-        image('craft', click_times=5, color=False)
-        image('x')
-        image('acoin', offset=(-100, 0))
-        time.sleep(3)
-    else:
-        print("未找到cuddle_kitchen1")
+    # if image('cuddle_kitchen1', click_times=2):
+    #     time.sleep(2)
+    #     image('beeswax')
+    #     image('craft')
+    #     image('x_land')
+    #     image('acoin', offset=(-100, 0))
+    #     time.sleep(3)
+    # else:
+    #     print("未找到cuddle_kitchen1")
     if image('cuddle_kitchen4', click_times=2):
         time.sleep(2)
         if image('#2', click_times=0):
             image('left_arrow'), time.sleep(1)
-        image('claim'), time.sleep(1)
-        image('ok', color=False), time.sleep(1)
-        image('boiled_carrot')
-        image('craft', color=False)
+        image('beeswax')
+        image('craft')
+        time.sleep(5)
+
+        image('right_arrow'), time.sleep(1)
+        image('beeswax')
+        image('craft')
+        time.sleep(5)
+
+        # image('right_arrow'), time.sleep(1)
+        # image('large_haste_potion')
+        # image('craft')
+        # time.sleep(5)
+
+        # image('right_arrow'), time.sleep(1)
+        # image('large_haste_potion')
+        # image('craft')
+        # time.sleep(5)
+
+        image('right_arrow', click_times=3), time.sleep(1)
+        image('cotton_paper')
+        image('craft')
+        time.sleep(5)
+
+        image('right_arrow'), time.sleep(1)
+        image('shell_of_broken_defence')
+        image('craft')
+        time.sleep(5)
+
+
 
         # image('right_arrow'), time.sleep(1)
         # image('claim'), time.sleep(1)
@@ -378,7 +416,7 @@ def craft_food():
         # image('boiled_carrot')
         # image('craft', color=False)
 
-        image('x')
+        image('x_land')
         image('acoin', offset=(-100, 0))
         time.sleep(3)
     else:
@@ -392,7 +430,7 @@ def craft_equip():
     #     image('ok', color=False), time.sleep(1)
     #     image('steel_hammer')
     #     image('craft', click_times=5, color=False)
-    #     image('x')
+    #     image('x_land')
     #     image('acoin', offset=(-100, 0))
     #     time.sleep(3)
     # else:
@@ -403,29 +441,27 @@ def craft_equip():
         if image('#2', click_times=0):
             image('left_arrow'), time.sleep(1)
 
-        image('iron_hammer')
-        image('craft1', click_times=3)
+        # image('iron_hammer')
+        # image('craft1', click_times=3)
+        # time.sleep(5)
         image('iron_sword', gray_diff_threshold=9)
         image('craft')
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
-        image('rosy_harp')
-        image('craft1', click_times=3)
+        # image('rosy_harp')
+        # image('craft1', click_times=3)
+        # time.sleep(5)
         image('iron_sword', gray_diff_threshold=9)
         image('craft')
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
         image('steel_helmet')
-        image('craft1', click_times=5)
-        image('steel_chain_mail')
         image('craft')
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
-        image('steel_shoes')
-        image('craft1', click_times=5)
         image('steel_chain_mail')
         image('craft')
         time.sleep(5)
@@ -440,7 +476,7 @@ def craft_equip():
         image('craft')
         time.sleep(5)
 
-        image('x')
+        image('x_land')  
         image('acoin', offset=(-100, 0))
         time.sleep(5)
     else:
@@ -453,7 +489,6 @@ def countdown(activity, seconds):
         sys.stdout.flush()
         time.sleep(1)
     print("\r倒计时结束！      ")
-
 
 def switch_plot(plot):
     image('plot')
@@ -472,26 +507,35 @@ def switch_plot(plot):
     image('acoin', offset=(-410, 810))  # 左下角收菜的位置
     time.sleep(3)
 
-
-def discard(ore1, ore2=None):
-    press('v'), time.sleep(3)
+def discard(*ores):
+    """
+    丢弃指定的矿石
+    :param ores: 要丢弃的矿石名称列表
+    """
+    press('v')
+    time.sleep(3)
+    
+    # 点击必要的UI元素
     image('inventory', offset=(-50, 110))  # 苹果
     image('inventory', offset=(615, 110))  # Metalwork
     image('miners_mass')
     image('down_arrow')
     image('down_arrow', offset=(-180, 180))
-    for _ in range(5):
-        if image(ore1, threshold=0.95):
-            image('discard'), time.sleep(1)
-            press('enter'), time.sleep(3)
-    if ore2 and ore2 != ore1:  # 避免重复处理同一个矿石
-        for _ in range(5):
-            if image(ore2, threshold=0.95):
-                image('discard')
-                time.sleep(1)
-                press('enter')
-                time.sleep(3)
-    image('x')
+    
+    # 处理每个矿石
+    for ore in ores:
+        if ore:  # 只处理非None的矿石
+            for _ in range(5):
+                if image(ore, threshold=0.94):
+                    time.sleep(1)
+                    image('discard')
+                    time.sleep(1)
+                    press('enter')
+                    time.sleep(3)
+                else:
+                    print(f"[INFO] 未找到{ore}")
+    
+    image('x_land')
 
 
 def collect_post():
@@ -510,19 +554,36 @@ def collect_post():
                 image('claim')
                 time.sleep(3)
 
-    image('x')
+    image('x_land')
+    countdown("等待取件", 120)
 
 
-def transfer():
+def transfer(plot_type):
+    # 定义默认的传输图片列表
+    default_plot1 = ['wood_transfer']
+
+    default_plot2 = ['iron_transfer1', 'iron_transfer2', 'iron_transfer3',
+        'gold_transfer1', 'gold_transfer2', 'gold_transfer3',
+        'platinum_transfer1', 'platinum_transfer2', 'platinum_transfer3',
+        'charcoal_transfer1', 'charcoal_transfer2', 'charcoal_transfer3']   
+    
     press('r')
     time.sleep(1)
     image('transfer', offset=(-350, 105))
+    image('down_arrow')
+    image('down_arrow', offset=(-180, 250))
 
     clicked_positions = []
     max_attempts = 15  # 最多尝试找图的次数
-    target_images = ['gold_transfer1', 'gold_transfer2', 'gold_transfer3',
-                     'iron_transfer1', 'iron_transfer2', 'iron_transfer3',
-                     'platinum_transfer1', 'platinum_transfer2', 'platinum_transfer3']
+    
+    # 根据传入的参数选择图片列表
+    if plot_type == 'plot1':
+        target_images = default_plot1
+    elif plot_type == 'plot2':
+        target_images = default_plot2
+    else:
+        print("[ERROR] 必须传入 'plot1' 或 'plot2'")
+        return
 
     for _ in range(max_attempts):
         found_any = False
@@ -558,28 +619,87 @@ def transfer():
     image('transfer', offset=(640, 790))
     image('remember_destination')
     press('enter'), time.sleep(5)
-    image('x')
+    image('x_land')
 
+def adventure():
+    # 检查当前时间是否在8:00到11:00之间
+    current_hour = time.localtime().tm_hour
+    if not (8 <= current_hour < 11) and not (20 <= current_hour < 23):
+        print("[INFO] 当前时间不在8-11之间，跳过adventure")
+        return
 
-for _ in range(30):
+    press('n')
+    time.sleep(3)
+    if image('start_count'):
+        time.sleep(3)
+        press('enter')
+        time.sleep(3)
+        press('enter')
+        time.sleep(3)
+
+    pos = image('3_axies', click_times=0)
+    if pos:
+        x, y = pos
+        pyautogui.moveTo(x, y)
+        pyautogui.click()
+        image('1_axie', threshold=0.95)
+
+    time.sleep(1)
+    for _ in range(20):
+        if image('+', region=(x, y, x + 100, y + 700)):                     
+            image('+', region=(x, y, x + 100, y + 700))
+            image('+', region=(x, y, x + 100, y + 700))
+            press('enter')
+            time.sleep(1)
+            press('enter')
+            if loading(['fail'], check_interval=0.1, click_times=0, timeout=2):
+                break
+        else:
+            break       
+    image('x_land')
+    time.sleep(3)
+        
+    
+        
+        
+    
+
+def main():
     enter_game()
 
+
     switch_plot('105_128')
-    collect(15, 0)
+    # adventure()
+    discard('copper_ore', 'topaz_ore', 'ruby_ore', 'amethyst_ore')
+    collect_post()
+    # transfer('plot2')
+    # craft_food()
+    mine('plot2')
+    collect(10, 0)
+
 
     switch_plot('57_119')
-    collect(15, 0)
-
-    # close_game()
-
-    countdown("收菜", 30)
-
-
-
-
-
+    adventure()
+    # discard('copper_ore')
+    craft_food()
+    # craft_equip()   
+    # collect_post()
+    transfer('plot1')
+    mine('plot1')
+    collect(5, 0)
 
 
+    close_game()
+
+
+
+if __name__ == "__main__":
+    enter_game()
+    switch_plot('105_128')
+    for _ in range(30):
+        collect(12, 1)
+        countdown("砍樹", 60)
+    
 
 
 
