@@ -30,6 +30,9 @@ def run_script(script_name):
     process.wait()
     print(f"[run_script] {script_name} 执行完毕。")
     current_task = None
+    if script_name == AXIE_CLASSIC_PATH:  # 如果是classic脚本
+        print("Classic脚本执行完毕，退出程序...")
+        sys.exit(0)  # 直接退出程序
 
 def worker():
     print("[worker] worker线程已启动")
@@ -70,6 +73,7 @@ def print_schedule_status():
         print(f"- 预计执行时间：{next_task.scheduled_time}")
 
 # 移除定时任务，改为轮流执行两个脚本
+# SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH]
 SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH, AXIE_CLASSIC_PATH]
 # SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
 IMMEDIATE_FLAGS = [IMMEDIATE_RUN_LAND, IMMEDIATE_RUN_ORIGIN, IMMEDIATE_RUN_CLASSIC]

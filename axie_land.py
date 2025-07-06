@@ -384,15 +384,24 @@ def mine(plot='plot1'):
     
 def craft_food():
     image('P')
-    # if image('cuddle_kitchen1', click_times=2):
-    #     time.sleep(2)
-    #     image('beeswax')
-    #     image('craft')
-    #     image('x_land')
-    #     image('acoin', offset=(-100, 0))
-    #     time.sleep(3)
-    # else:
-    #     print("未找到cuddle_kitchen1")
+    if image('big_boomer', click_times=2):
+        time.sleep(2)
+        image('cotton_paper')
+        image('craft')
+        time.sleep(5)
+
+        image('right_arrow'), time.sleep(1)
+        image('cotton_paper')
+        image('craft')
+        time.sleep(5)
+
+        image('x_land')
+        image('acoin', offset=(-100, 0))
+        time.sleep(3)
+    else:
+        print("未找到big_boomer")
+
+
     if image('cuddle_kitchen4', click_times=2):
         time.sleep(2)
         if image('#2', click_times=0):
@@ -410,9 +419,15 @@ def craft_food():
         image('large_haste_potion')
         image('craft')
         time.sleep(5)
+        image('large_potion_of_might')
+        image('craft')
+        time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
         image('large_haste_potion')
+        image('craft')
+        time.sleep(5)
+        image('large_potion_of_might')
         image('craft')
         time.sleep(5)
 
@@ -425,6 +440,16 @@ def craft_food():
         image('shell_of_large_area_damage')
         image('craft')
         time.sleep(5)
+        image('shell_of_large_concentrated_damage')
+        image('craft')
+        time.sleep(5)
+        image('shell_of_weakness')
+        image('craft')
+        time.sleep(5)
+        image('shell_of_broken_defence')
+        image('craft')
+        time.sleep(5)
+        
 
 
         image('x_land')
@@ -437,9 +462,9 @@ def craft_food():
 def craft_equip():
     if image('hammer_hut1', click_times=2, threshold=0.95):
         time.sleep(2)
-        image('iron_sword', gray_diff_threshold=9)
-        image('craft')
-        time.sleep(5)
+        # image('iron_sword', gray_diff_threshold=9)
+        # image('craft')
+        # time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
         image('steel_chain_mail')
@@ -450,33 +475,77 @@ def craft_equip():
         image('acoin', offset=(-100, 0))
         time.sleep(5)
     else:
-        print("未找到cuddle_kitchen1")
+        print("未找到hammer_hut1")
 
     if image('hammer_hut5', click_times=2, threshold=0.95):
         time.sleep(2)
         if image('#2', click_times=0):
             image('left_arrow'), time.sleep(1)
-        image('platinum_dual_sword', gray_diff_threshold=9, threshold=0.96)
-        for _ in range(11):
-            press('enter')
+        image('platinum_long_sword', gray_diff_threshold=9, threshold=0.96)
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
         time.sleep(5)
-
-        image('right_arrow'), time.sleep(1)
         image('platinum_dual_sword', gray_diff_threshold=9)
-        for _ in range(11):
-            press('enter')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
+        time.sleep(5)
+
+        image('right_arrow'), time.sleep(1)
+        image('platinum_long_sword', gray_diff_threshold=9)
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
+        time.sleep(5)
+        image('platinum_dual_sword', gray_diff_threshold=9)
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
         image('platinum_chain_mail')
-        for _ in range(11):
-            press('enter')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
+        time.sleep(5)
+        image('platinum_shoes')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()                 
+        time.sleep(5)
+        image('platinum_helmet')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click() 
+        time.sleep(5)
+        image('platinum_plate_mail')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
         image('platinum_chain_mail')
-        for _ in range(11):
-            press('enter')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
+        time.sleep(5)
+        image('platinum_shoes')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()
+        time.sleep(5)
+        image('platinum_helmet')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click() 
+        time.sleep(5)
+        image('platinum_plate_mail')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click()  
         time.sleep(5)
 
         image('right_arrow'), time.sleep(1)
@@ -541,7 +610,7 @@ def discard(*ores):
     for ore in ores:
         if ore:  # 只处理非None的矿石
             for _ in range(5):
-                if image(ore, threshold=0.94):
+                if image(ore, threshold=0.97):
                     time.sleep(1)
                     image('discard')
                     time.sleep(1)
@@ -574,23 +643,73 @@ def collect_post():
 
 
 def transfer(plot_type):
+
     # 定义默认的传输图片列表
-    default_plot1 = ['wood_transfer']
+    default_plot1 = ['wood_trarnsfer']
 
-    default_plot2 = ['leather_transfer']
-
-    # default_plot2 = ['iron_transfer1', 'iron_transfer2', 'iron_transfer3',
-    #     'gold_transfer1', 'gold_transfer2', 'gold_transfer3',
-    #     'platinum_transfer1', 'platinum_transfer2', 'platinum_transfer3',
-    #     'charcoal_transfer1', 'charcoal_transfer2', 'charcoal_transfer3'
-    #     'emerald_ore_transfer1', 'emerald_ore_transfer2', 'emerald_ore_transfer3']   
+    default_plot2 = ['cotton_paper_transfer1', 'cotton_paper_transfer2', 'cotton_paper_transfer3','cotton_paper_transfer4','cotton_paper_transfer5',
+        'leather_transfer1', 'leather_transfer2', 'leather_transfer3', 'leather_transfer4', 'leather_transfer5',
+        'gold_transfer1', 'gold_transfer2', 'gold_transfer3',
+        'platinum_transfer1', 'platinum_transfer2', 'platinum_transfer3',
+        # 'charcoal_transfer1', 'charcoal_transfer2', 'charcoal_transfer3'
+        'emerald_ore_transfer1', 'emerald_ore_transfer2', 'emerald_ore_transfer3']   
     
     press('r')
     time.sleep(1)
+    image('transfer', offset=(-520, 105))
+    time.sleep(1)
+    clicked_positions = []
+    max_attempts = 15  # 最多尝试找图的次数
+    
+    # 根据传入的参数选择图片列表
+    if plot_type == 'plot1':
+        target_images = default_plot1
+    elif plot_type == 'plot2':
+        target_images = default_plot2
+    else:
+        print("[ERROR] 必须传入 'plot1' 或 'plot2'")
+        return
+
+    for _ in range(max_attempts):
+        found_any = False
+        for img_name in target_images:
+            pos = image(img_name, click_times=0, threshold=0.8)
+            if pos is None:
+                continue
+
+            # 检查是否已经点击过相近位置（容差100像素）
+            already_clicked = False
+            for p in clicked_positions:
+                if abs(p[0] - pos[0]) < 100 and abs(p[1] - pos[1]) < 100:
+                    already_clicked = True
+                    break
+            if already_clicked:
+                continue
+
+            pyautogui.click(pos)
+            clicked_positions.append(pos)
+            time.sleep(0.5)  # 给界面反应时间
+            found_any = True
+
+            if len(clicked_positions) >= max_attempts:
+                return
+
+        if not found_any:
+            # 本轮没找到任何新图，提前结束避免无效循环
+            break
+    
+    image('destination'), time.sleep(3)
+    image('confirm_transfer', offset=(-1000, -350))
+    image('confirm_transfer')
+    image('transfer', offset=(640, 790))
+    image('remember_destination')
+    press('enter'), time.sleep(5)
+
+
     image('transfer', offset=(-350, 105))
-    image('down_arrow')
-    image('down_arrow', offset=(-180, 250))
-    pyautogui.moveRel(0, -200)
+    # image('down_arrow')
+    # image('down_arrow', offset=(-180, 250))
+    # pyautogui.moveRel(0, -200)
     time.sleep(1)
 
     clicked_positions = []
@@ -608,7 +727,7 @@ def transfer(plot_type):
     for _ in range(max_attempts):
         found_any = False
         for img_name in target_images:
-            pos = image(img_name, click_times=0, threshold=0.95)
+            pos = image(img_name, click_times=0, threshold=0.8)
             if pos is None:
                 continue
 
@@ -644,7 +763,7 @@ def transfer(plot_type):
 def adventure():
     # 检查当前时间是否在8:00到11:00之间
     current_hour = time.localtime().tm_hour
-    if not (8 <= current_hour < 11) and not (20 <= current_hour < 23):
+    if not (8 <= current_hour < 11) and not (20 <= current_hour < 22):
         print("[INFO] 当前时间不在8-11之间，跳过adventure")
         return
 
@@ -691,15 +810,14 @@ def adventure():
 def main():
     enter_game()
 
-
     switch_plot('105_128')
     # adventure()
-    discard('copper_ore', 'topaz_ore', 'ruby_ore', 'amethyst_ore')
-    craft_equip()  
+    discard('copper_ore', 'topaz_ore', 'ruby_ore', 'amethyst_ore', 'diamond_ore', 'emerald_ore')
+    craft_food()
+    # craft_equip()  
     collect_post()
     transfer('plot2')
-    # craft_food()
-    mine('plot2')
+    # mine('plot2')
     collect(5, 0)      
     
 
@@ -711,7 +829,7 @@ def main():
     craft_food()
     craft_equip()   
     collect_post()
-    transfer('plot1')
+    # transfer('plot1')
     mine('plot1')
     collect(5, 0)
 

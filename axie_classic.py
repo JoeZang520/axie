@@ -80,6 +80,10 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
     start_time = time.time()
     print(f"正在加载 {image_names} ... ")
     found_positions = {}
+    
+    # 添加超时计数器
+    if not hasattr(loading, 'timeout_count'):
+        loading.timeout_count = 0
 
     while True:
         for image_name in image_names:
@@ -94,7 +98,16 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         # 检查是否超时
         if timeout and (time.time() - start_time) > timeout:
             elapsed_time = time.time() - start_time
-            print(f"加载超时 ({elapsed_time:.1f}秒)")
+            loading.timeout_count += 1
+            print(f"加载超时 ({elapsed_time:.1f}秒) - 第 {loading.timeout_count} 次超时")
+            
+            # 如果超时超过3次，执行close_game()
+            if loading.timeout_count >= 3:
+                print("超时次数达到3次，正在关闭游戏...")
+                close_game()
+                loading.timeout_count = 0  # 重置计数器
+                return None
+            
             return None
 
         time.sleep(check_interval)
@@ -107,6 +120,10 @@ def enter_game():
         print("当前不在游戏中。")
         subprocess.Popen(r"E:\Axie Classic\axie_game.exe")
         loading(['classic_play'], check_interval=3)
+        time.sleep(2)
+        pyautogui.moveTo(100, 100)
+        time.sleep(1)
+
     if image("free_spin", color=False):
         time.sleep(10)
         pyautogui.click()
@@ -118,13 +135,16 @@ def enter_game():
     image("x_classic", color=False)  
     if image("classic_ok", color=False):
         close_game()
-        time.sleep(60)                  
+        time.sleep(30)                  
     if image("disconnect"):
         close_game()
-        time.sleep(60)
+        time.sleep(30)
+    if image("classic_exit"):
+        close_game()
+        time.sleep(30)
     if image("classic_cancel"):
         close_game()
-        time.sleep(60)
+        time.sleep(30)
 
 def close_game():
     try:
@@ -169,6 +189,8 @@ def enter_battle():
             image('classic_cancel')
         if image('classic_play'):
             time.sleep(2)
+            pyautogui.moveTo(100, 100)
+            time.sleep(1)
             image('classic_arena')
     else:
         print("当前已经在战斗中。")
@@ -255,7 +277,7 @@ def main(target_victories=1):
 
 if __name__ == '__main__':
     # 设置目标胜利次数，默认为1
-    main(target_victories=1)
+    main(target_victories=2)
     
                         
     
