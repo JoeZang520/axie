@@ -90,7 +90,7 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
             # print(f"尝试匹配图片: {image_name}")
             pos = image(image_name, threshold=threshold, click_times=click_times, color=color)
             if pos is not None:
-                print(f"成功匹配到图片: {image_name}")
+                print(f"成功匹配到图片: {image_name} 坐标: {pos}")
                 found_positions[image_name] = pos
                 # 找到任意一个图片就返回
                 return {image_name: pos}
@@ -120,6 +120,10 @@ def enter_game():
         print("当前不在游戏中。")
         subprocess.Popen(r"E:\Axie Classic\axie_game.exe")
         loading(['classic_play'], check_interval=3)
+        time.sleep(2)
+        pyautogui.moveTo(100, 100)
+        time.sleep(1)
+
     if image("free_spin", color=False):
         time.sleep(10)
         pyautogui.click()
@@ -132,7 +136,7 @@ def enter_game():
     if image("classic_ok", color=False):
         close_game()
         time.sleep(30)                  
-    if image("disconnect"):
+    if image("disconnect", gray_diff_threshold=13):
         close_game()
         time.sleep(30)
     if image("classic_exit"):
@@ -185,6 +189,8 @@ def enter_battle():
             image('classic_cancel')
         if image('classic_play'):
             time.sleep(2)
+            pyautogui.moveTo(100, 100)
+            time.sleep(1)
             image('classic_arena')
     else:
         print("当前已经在战斗中。")
@@ -194,16 +200,26 @@ def main(target_victories=1):
     total_games = 0
     victories = 0
     defeats = 0
+    
+    # 记录开始时间
+    start_time = time.time()
+    max_runtime = 60 * 60  
 
     # 检查时间
     if not check_time():
         return
 
     while True:
+        # 检查是否超过最大运行时间
+        if time.time() - start_time > max_runtime:
+            print(f"程序运行时间已达到{max_runtime//60}分钟，自动结束")
+            close_game()
+            break
+            
         enter_game()
         enter_battle()
         print("开始检测战斗状态...")
-        result = loading(['classic_end', 'classic_victory', 'classic_defeat', 'classic_draw'], 
+        result = loading(['classic_end', 'classic_victory','classic_defeat', 'classic_draw'], 
                         click_times=0, 
                         threshold=0.7)
         
@@ -271,7 +287,10 @@ def main(target_victories=1):
 
 if __name__ == '__main__':
     # 设置目标胜利次数，默认为1
-    main(target_victories=7)
+    # current_hour = time.localtime().tm_hour
+    # if (11 <= current_hour < 14):
+        main(target_victories=10)
+    
     
                         
     

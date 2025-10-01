@@ -17,6 +17,7 @@ task_queue = queue.Queue()
 current_task = None
 last_status_print = 0  # 用于控制状态打印频率
 
+
 # 是否启动时立即执行任务
 IMMEDIATE_RUN_LAND = True   # 设置为False则不立即执行axie_land
 IMMEDIATE_RUN_ORIGIN = True # 设置为False则不立即执行axie_origin
@@ -30,6 +31,9 @@ def run_script(script_name):
     process.wait()
     print(f"[run_script] {script_name} 执行完毕。")
     current_task = None
+    # if script_name == AXIE_CLASSIC_PATH:  # 如果是origin脚本
+    #     print("origin脚本执行完毕，退出程序...")
+    #     sys.exit(0)  # 直接退出程序
 
 def worker():
     print("[worker] worker线程已启动")
@@ -62,6 +66,8 @@ def print_schedule_status():
     if not task_queue:  # 如果队列为空
         print("[schedule] 当前没有待执行的任务")
     else:
+
+
         next_task = task_queue[0]  # 获取下一个要执行的任务
         print(f"[schedule] 当前任务状态：")
         print(f"- 正在执行：{current_task.name if current_task else '无'}")
@@ -70,8 +76,11 @@ def print_schedule_status():
         print(f"- 预计执行时间：{next_task.scheduled_time}")
 
 # 移除定时任务，改为轮流执行两个脚本
-SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH, AXIE_CLASSIC_PATH]
-# SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
+
+
+# SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH]
+# SCRIPTS = [ AXIE_LAND_PATH, AXIE_CLASSIC_PATH, AXIE_ORIGIN_PATH]
+SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
 IMMEDIATE_FLAGS = [IMMEDIATE_RUN_LAND, IMMEDIATE_RUN_ORIGIN, IMMEDIATE_RUN_CLASSIC]
 script_index = -1
 print("中控脚本已启动，将轮流执行axie_land、axie_origin和axie_classic...")
@@ -94,5 +103,6 @@ while True:
         next_script = SCRIPTS[script_index]
         print(f"[schedule] 队列空，自动加入{next_script}任务")
         task_queue.put(next_script)
-    print_heartbeat()  # 定期打印状态
+    print_heartbeat() 
+     # 定期打印状态
     time.sleep(10)

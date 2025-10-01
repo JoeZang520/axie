@@ -695,9 +695,9 @@ def main():
 
 if __name__ == "__main__":
     enter_game()
-    switch_plot('105_128')
+    # switch_plot('105_128')
     for _ in range(30):
-        collect(12, 1)
+        collect(30, 0)
         countdown("砍樹", 60)
     
 
