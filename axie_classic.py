@@ -287,9 +287,9 @@ def main(target_victories=1):
 
 if __name__ == '__main__':
     # 设置目标胜利次数，默认为1
-    # current_hour = time.localtime().tm_hour
-    # if (11 <= current_hour < 14):
-        main(target_victories=10)
+    current_hour = time.localtime().tm_hour
+    if (11 <= current_hour < 14):
+        main(target_victories=1)
     
     
                         

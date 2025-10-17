@@ -66,7 +66,7 @@ axie_cards = {
         ("silence", 1, True, "ally", "all"),   
         # ("cattail", 1, True, "ally", "all"),
         ("cloud", 0, True, "ally", "all"), # 0费
-        # ("sakura1", 1, True, "ally", "all"),
+        # ("sakura", 1, True, "ally", "all"),
         ("innocent_lamb", 0, False, None, None),  
         # ("rose_bud", 1, True, "ally", "all"),
         ("strawberry", 2, True, "ally", "all"),
@@ -143,7 +143,7 @@ axie_cards = {
     "front110136": [
         ("green1", 1, True, "ally", "all"), 
         # ("zeal", 0, False, None, None),  # 0费
-        ("sakura", 1, True, "ally", "all"),
+        ("sakura_j", 1, True, "ally", "all"),
         # ("cattail", 1, True, "ally", "all"),
         ("cloud", 0, True, "ally", "all"),
         ("sponge", 2, False, None, None), 
@@ -168,7 +168,7 @@ axie_cards = {
         ("green1", 1, True, "ally", "all"),
         # ("lotus", 1, True, "ally", "all"),
         ("green2", 1, True, "ally", "all"),
-        ("sakura1", 1, True, "ally", "all"),
+        ("sakura", 1, True, "ally", "all"),
         # ("rose_bud", 1, True, "ally", "all"),
         ("bidens", 1, True, "ally", "all"),
     ],
@@ -236,7 +236,7 @@ axie_cards = {
 
 }
 
-card_priority = ['innocent_lamb', 'sakura', 'sakura1', 'bumpy',
+card_priority = ['innocent_lamb', 'sakura', 'sakura_j', 'bumpy',
     'confident', 'puppy_eye', 'cloud', 'little_branch', 'shiba', 'puppy_ear', 'belieber', 'ronin', 'zeal', 'hero','tiny_dino', 'peas',
     'energy_coin_card', 'cattail', 'ant', 'wall_gecko', 'cucumber', 'mint', 'silence', 'biden', 'rose_bud','lotus', 'green1', 'green2', 'green3', 'cuckoo', 'hermit', 'clover', 'shoal_star',
     'glove', 'sword', 'knife', 'shield', 'axe'
