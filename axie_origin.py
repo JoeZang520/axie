@@ -1439,7 +1439,7 @@ def in_rank_mode():
     return image('rank_mode') is not None
 
 
-def enter_battle(choice=CHOICE):      
+def enter_battle(choice=CHOICE, mode='ranked'):      
     if not in_rank_mode():
         print("当前不在排位賽中。")      
         if image('red_spot', threshold=0.95):
@@ -1447,10 +1447,11 @@ def enter_battle(choice=CHOICE):
             pyautogui.press('esc')
             pyautogui.click()
             image('origin_cancel', color=False)
-            image('ranked')
+            image(mode)
         image('x_origin', threshold=0.75)
         if image('menu'):
             image('surrender')
+            time.sleep(1)
             image('confirm_surrender', click_times=5)
             image('back'), time.sleep(5)
         if image('next'):
@@ -1460,19 +1461,19 @@ def enter_battle(choice=CHOICE):
                 pyautogui.press('esc')
                 pyautogui.click()
                 image('origin_cancel', color=False)
-                image('ranked')
+                image(mode)
             image('x_origin', threshold=0.75)          
-            loading([choice], timeout=15)
-        elif image('ranked', click_times=0):
+            loading([choice], timeout=30)
+        elif image(mode, click_times=0):
             image('x_origin')
             image('origin_back_arrow')
             image('play')
             time.sleep(2)
-            image('ranked')
+            image(mode)
             loading([choice], timeout=15)
         elif image('play'):
             time.sleep(2)
-            image('ranked')          
+            image(mode)          
             loading([choice], timeout=15)
         image('x_origin', threshold=0.75)
     else:
