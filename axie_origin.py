@@ -231,7 +231,7 @@ def image_multi(png_list, thresholds=thresholds, region=None, min_x_distance=60,
 
 
 def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=50,
-            return_all_positions=False, color=True):
+            return_all_positions=False, color=True, region=None, gray_diff_threshold=14, offset=(0, 0)):
     start_time = time.time()
     print(f"正在加载 {image_names} ... ")
     found_positions = {}
@@ -241,7 +241,16 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         all_found = True
         for image_name in image_names:
             if image_name not in found_positions:
-                pos = image(image_name, threshold=threshold, click_times=click_times, color=color)  # 使用传入的color参数
+                pos = image(
+                    image_name,
+                    offset=offset,
+                    threshold=threshold,
+                    click_times=click_times,
+                    color=color,
+                    region=region,
+                    gray_diff_threshold=gray_diff_threshold
+                )
+  # 使用传入的color参数与区域
                 if pos is not None:
                     found_positions[image_name] = pos
                     if not return_all_positions:

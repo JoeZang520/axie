@@ -3,10 +3,8 @@ import pyautogui
 import random
 import win32gui
 import pygetwindow as gw
-import numpy as np
 from datetime import datetime
 
-from axie_origin_helper.axie_slot import all_slots
 # 复用现有的游戏控制与图像检测函数
 from axie_origin import close_game, enter_game, enter_battle, loading, image, detect_cards
 
@@ -21,29 +19,6 @@ def get_window_region(window_title):
     window_region = (pt[0], pt[1], pt2[0]-pt[0], pt2[1]-pt[1])
 
     return window_region
-
-def click_target(window_region):
-    time.sleep(1)
-    # 获取窗口截图
-    img = np.array(pyautogui.screenshot(region=window_region))
-
-    # 计算所有可能的目标
-    target_slots = [slot for slot in all_slots if slot.is_target(img)]
-
-    if len(target_slots) == 0:
-        return
-
-    # 计算优先级最高的目标
-    target = sorted(target_slots, key=lambda x: x.priority, reverse=True)[0]
-
-    # 点击目标
-    win_x, win_y, _, _ = window_region
-    target_x, target_y = target.region_center
-    pyautogui.moveTo(win_x + target_x, win_y + target_y)
-    pyautogui.click()
-
-    return
-
 
 # 从左到右扫描手牌，获取卡牌能量并打出能量>1的牌
 def play_cards(color: bool = True) -> None:
@@ -62,7 +37,7 @@ def play_cards(color: bool = True) -> None:
     pyautogui.moveTo(read_x, read_y)
 
     # 卡牌能量搜索区域
-    energy_search_region = (0 + win_x, 300 + win_y, 1600, 300)
+    energy_search_win_region = (0 + win_x, 300 + win_y, 1600, 300)
 
     for i in range(20):
         # pos = pyautogui.position()
@@ -81,10 +56,16 @@ def play_cards(color: bool = True) -> None:
         elif found in ('card_energy_1', 'card_energy_2'):
             pyautogui.click()
             current_x, current_y = pyautogui.position()
+            found_target = loading(
+                ['card_target_enemy_1', 'card_target_ally_1', 'card_target_ally_2', 'card_target_ally_3'],
+                check_interval=0.05,
+                click_times=3,
+                timeout=1,
+                offset=(0, -30)
+            )
 
-            click_target((win_x, win_y, win_width, win_height))
-
-            time.sleep(1)
+            if found_target is not None:
+                time.sleep(1)
             pyautogui.moveTo(current_x, current_y)
 
         elif found == 'card_energy_1_grey' or (i > 6 and found == None):
@@ -130,8 +111,6 @@ def end_turn_loop(max_wait_seconds: int = 120) -> str:
 
 # Arcade模式刷AXP设置，不建议修改
 mode = 'arcade'
-
-# 设置先后手
 choice = 'go_first'
 
 # 设置游戏结束时间（24小时制，例如：23:30表示23点30分）
