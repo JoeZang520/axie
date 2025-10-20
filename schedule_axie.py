@@ -74,13 +74,14 @@ def print_schedule_status():
         print(f"- 等待中的任务数：{len(task_queue)}")
         print(f"- 下一个任务：{next_task.name}")
         print(f"- 预计执行时间：{next_task.scheduled_time}")
+        
 
 # 移除定时任务，改为轮流执行两个脚本
 
 
 # SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH]
-# SCRIPTS = [ AXIE_LAND_PATH, AXIE_CLASSIC_PATH, AXIE_ORIGIN_PATH]
-SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
+SCRIPTS = [ AXIE_LAND_PATH, AXIE_CLASSIC_PATH, AXIE_ORIGIN_PATH]
+# SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
 IMMEDIATE_FLAGS = [IMMEDIATE_RUN_LAND, IMMEDIATE_RUN_ORIGIN, IMMEDIATE_RUN_CLASSIC]
 script_index = -1
 print("中控脚本已启动，将轮流执行axie_land、axie_origin和axie_classic...")

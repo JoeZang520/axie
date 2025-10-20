@@ -35,6 +35,7 @@ def restart_clash_if_offline(cooldown_seconds: int = 120):
         time.sleep(10)
     except Exception as e:
         print(f"[WARN] 关闭 Clash 失败: {e}")
+    time.sleep(2)
     try:
         subprocess.Popen(CLASH_EXE_PATH)
         _last_clash_restart_ts = time.time()
@@ -51,7 +52,7 @@ initial_positions = {
 }
 
 
-def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=True, gray_diff_threshold=14):
+def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=True, gray_diff_threshold=15):
     if not png.endswith('.png'):
         png += '.png'
     image_path = os.path.join('pic', png)
@@ -253,6 +254,7 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
   # 使用传入的color参数与区域
                 if pos is not None:
                     found_positions[image_name] = pos
+                    print(f"找到 {image_name} 位置: {pos}")
                     if not return_all_positions:
                         return image_name  # 如果不需要所有位置，找到第一个就返回
                 else:
@@ -550,7 +552,7 @@ def get_axie_info():
     dead_status = {}
     for pos_name, (axie_x, axie_y) in all_positions.items():
         region = (axie_x - 100, axie_y - 100, 200, 200)
-        found = image(pos_name, region=region, threshold=0.85, gray_diff_threshold=3, click_times=0, color=True)
+        found = image(pos_name, region=region, threshold=0.85, gray_diff_threshold=1.5, click_times=0, color=True)
         dead_status[pos_name] = bool(found)
 
     # 获取血量信息
@@ -650,7 +652,7 @@ def select_target(hand_cards, axie_info):
                     # 只处理我方目标
                     if target_side == 'ally' and target_row == 'all':
                         # 优先处理confident和puppy_eye卡
-                        if card['name'] in ['confident', 'puppy_eye', 'cuckoo', 'bumpy', 'sakura', 'sakura1', 'cloud']:
+                        if card['name'] in ['confident', 'puppy_eye', 'cuckoo', 'bumpy', 'sakura', 'sakura_j', 'cloud']:
                             if 'A2' in axie_info['all'] and axie_info['all']['A2']['is_alive']:
                                 targets = ['A2']
                         else:
@@ -731,7 +733,7 @@ def keep_card(fragment_cost):
     :return: 是否成功保留任何卡片
     """
     # 点击保留按钮并设置搜索区域
-    countdown('等待出牌动画结束点keep', 3) 
+    countdown('等待出牌动画结束点keep', 2) 
     keep_pos = image('keep', click_times=2)
     if keep_pos:
         # 移动到keep按钮下方100像素的位置
@@ -815,26 +817,25 @@ def _use_single_zeal(card, priority_cards, used_targets):
             used_targets.add(target)  # 记录已使用的目标
             pyautogui.press('enter')
             pyautogui.moveTo(100, 100)
-            time.sleep(2)
+            countdown('等待zeal出牌完成', 2)
             return True
         else:
             print(f"[MISS] 未找到 {target}")
-
-    print("[INFO] 已尝试所有优先级卡片但未找到可用目标，取消选择")
     image('origin_cancel')
-    time.sleep(2)
+    time.sleep(1)
     return False
 
 
 def play_innocent_lamb(card, key):
     print(f"[ACTION] 按下快捷键 {card['hotkey']} 使用innocent_lamb")
     pyautogui.press(str(card['hotkey']))
-    time.sleep(0.5)
+    loading(['origin_cancel'], click_times=0, timeout=5)
     print("[ACTION] 按下快捷键选择目标")
     pyautogui.press(key)
     print("[ACTION] 按下回车确认")
     pyautogui.press('enter')
-    time.sleep(2)
+    pyautogui.moveTo(100, 100)
+    countdown('等待innocent_lamb出牌完成', 2)
 
 def play_hero(hand_cards, used_cards, axie_info, energy):
     # 计算当前理论剩余手牌数量
@@ -872,7 +873,7 @@ def play_hero(hand_cards, used_cards, axie_info, energy):
 
             # 根据card_priority排序
             effective_priority = list(card_priority)
-            if not (image('round_1', threshold=0.97, click_times=0) or image('round_2', threshold=0.97, click_times=0) or image('round_3', threshold=0.97, click_times=0)):
+            if not (image('round_1', threshold=0.96, click_times=0) or image('round_2', threshold=0.97, click_times=0) or image('round_3', threshold=0.97, click_times=0)):
                 if 'tiny_dino' in effective_priority and 'hero' in effective_priority:
                     try:
                         effective_priority.remove('tiny_dino')
@@ -906,7 +907,7 @@ def play_hero(hand_cards, used_cards, axie_info, energy):
                 
                 # neo 专用出牌逻辑（与innocent_lamb相同）
                 if new_card['name'] == 'neo':
-                    play_innocent_lamb(new_card, '3')
+                    play_innocent_lamb(new_card, '2')
                     continue
 
                 # 普通卡牌出牌逻辑
@@ -934,10 +935,10 @@ def play_hero(hand_cards, used_cards, axie_info, energy):
                         pyautogui.moveTo(*target)
                         if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                             pyautogui.click()
-                            pyautogui.moveRel(300, -300)
+                            time.sleep(1)
+                            pyautogui.moveRel(-150, 0)
                             pyautogui.click()
-                            pyautogui.click()
-
+                            time.sleep(1)
                         else:
                             print(f"[WARN] 找到祝福，出牌結束")
                             return hand_cards, energy
@@ -983,6 +984,12 @@ def play_cards(axie_info, hand_cards, energy):
     if icon_result is None:
         print("[ERROR] 未找到icon图片，无法定位手牌区域")
         return {}
+    
+    # 检查axie_info是否有效
+    if not axie_info or not isinstance(axie_info, dict) or 'all' not in axie_info:
+        print("[ERROR] axie_info无效，无法出牌")
+        return {}
+    
     used_cards = 0  # 记录已使用的卡片数量（包含zeal）
     fury = False  # 标记本轮是否打出过confident或puppy_eye或little_branch
     zeal_handled = False  # 标记是否已处理过zeal卡
@@ -1019,10 +1026,11 @@ def play_cards(axie_info, hand_cards, energy):
                 if target:
                     pyautogui.moveTo(*target)
                     if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
-                        pyautogui.click(), time.sleep(0.5)
-                        pyautogui.moveRel(300, -300)
                         pyautogui.click()
+                        time.sleep(1)
+                        pyautogui.moveRel(-150, 0)
                         pyautogui.click()
+                        time.sleep(1)
                     else:
                         print(f"[WARN] 找到祝福，出牌結束")
                         return hand_cards, energy
@@ -1037,7 +1045,7 @@ def play_cards(axie_info, hand_cards, energy):
     # 根据card_priority排序
     if all_cards:
         effective_priority = list(card_priority)
-        if not (image('round_1', threshold=0.98, click_times=0) or image('round_2', threshold=0.98, click_times=0) or image('round_3', threshold=0.98, click_times=0)):
+        if not (image('round_1', threshold=0.96, click_times=0) or image('round_2', threshold=0.97, click_times=0) or image('round_3', threshold=0.97, click_times=0)):
             if 'tiny_dino' in effective_priority and 'hero' in effective_priority:
                 try:
                     effective_priority.remove('tiny_dino')
@@ -1050,7 +1058,7 @@ def play_cards(axie_info, hand_cards, energy):
                               )
 
      # 根据卡牌名称执行不同的出牌策略
-    if image('round_1', threshold=0.95):
+    if image('round_1', threshold=0.96):
         # 检查是否有little_branch卡
         has_2energy_cards = any(
             card['name'] in ['little_branch'] 
@@ -1062,7 +1070,7 @@ def play_cards(axie_info, hand_cards, energy):
         # Process neo cards with the same logic as innocent lamb
         for card in sorted_cards:
             if card['name'] == 'neo':
-                play_innocent_lamb(card, '3')
+                play_innocent_lamb(card, '2')
                 used_card_keys.add((card['name'], card.get('hotkey')))
                 continue
 
@@ -1150,12 +1158,12 @@ def play_cards(axie_info, hand_cards, energy):
             continue
         # neo 专用出牌逻辑（与innocent_lamb相同）
         if card['name'] == 'neo':
-            play_innocent_lamb(card, '3')
+            play_innocent_lamb(card, '2')
             used_card_keys.add((card['name'], card.get('hotkey')))
             continue
         if card['name'] == 'energy_coin_card':
-            if image('round_1', threshold=0.97, click_times=0):
-                print(f"[INFO] 检测到 'round_1'，跳过 {card['name']} 的出牌")
+            if image('round_1', threshold=0.96, click_times=0):
+                print(f"[INFO] 检测到 'round'，跳过 {card['name']} 的出牌")
                 continue
             else:
                 print('未找到round_1')
@@ -1208,9 +1216,10 @@ def play_cards(axie_info, hand_cards, energy):
                 pyautogui.moveTo(*target)
                 if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                     pyautogui.click()
-                    pyautogui.moveRel(300, -300)
+                    time.sleep(1)
+                    pyautogui.moveRel(-150, 0)
                     pyautogui.click()
-                    pyautogui.click()
+                    time.sleep(1)
                 else:
                     print(f"[WARN] 找到祝福，出牌結束")
                     return hand_cards, energy
@@ -1235,7 +1244,7 @@ def play_cards(axie_info, hand_cards, energy):
                 
                 # 根据card_priority重新排序新增的卡牌
                 effective_priority = list(card_priority)
-                if not (image('round_1', threshold=0.98, click_times=0) or image('round_2', threshold=0.98, click_times=0) or image('round_3', threshold=0.98, click_times=0)):
+                if not (image('round_1', threshold=0.96, click_times=0) or image('round_2', threshold=0.97, click_times=0) or image('round_3', threshold=0.97, click_times=0)):
                     if 'tiny_dino' in effective_priority and 'hero' in effective_priority:
                         try:
                             effective_priority.remove('tiny_dino')
@@ -1284,7 +1293,7 @@ def play_cards(axie_info, hand_cards, energy):
                     # neo 专用出牌逻辑
                     if new_card['name'] == 'neo':
                         print(f"[ACTION] fury后使用新增neo")
-                        play_innocent_lamb(new_card, '3')
+                        play_innocent_lamb(new_card, '2')
                         used_card_keys.add((new_card['name'], new_card.get('hotkey')))
                         used_cards += 1
                         continue
@@ -1311,9 +1320,10 @@ def play_cards(axie_info, hand_cards, energy):
                             pyautogui.moveTo(*target)
                             if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                                 pyautogui.click()
-                                pyautogui.moveRel(300, -300)
+                                time.sleep(1)
+                                pyautogui.moveRel(-150, 0)
                                 pyautogui.click()
-                                pyautogui.click()
+                                time.sleep(1)
                             else:
                                 print(f"[WARN] 找到祝福，出牌結束")
                                 return hand_cards, energy
@@ -1464,7 +1474,7 @@ def enter_battle(choice=CHOICE, mode='ranked'):
             image('confirm_surrender', click_times=5)
             image('back'), time.sleep(5)
         if image('next'):
-            loading(['red_spot'], check_interval=0.1, timeout=10, threshold=0.75, color=False, click_times=0)
+            loading(['red_spot'], check_interval=0.1, timeout=10, threshold=0.95, click_times=0)
             if image('red_spot', threshold=0.95):
                 time.sleep(3)
                 pyautogui.press('esc')
@@ -1633,6 +1643,11 @@ def fight(n=40):
                     print("[INFO] 检测到A2阵亡，等待投降结果...")
                     time.sleep(5)  
                     continue  # 继续检查战斗结果
+                
+                # 如果无法获取axie信息，跳过本回合
+                if axie_info is None:
+                    print("[ERROR] 无法获取axie站位信息，跳过本回合")
+                    continue
 
                 print("[ACTION] 读取手牌信息...")
                 hand_cards = detect_cards(color=False)
@@ -1717,9 +1732,9 @@ def claim_reward():
 
 
 if __name__ == "__main__":
-    fight(n=32)
-    surrender(40, 'tiger')
-    # claim_reward()
+    fight(n=35)
+    surrender(30, 'bear')
+    claim_reward()
     print("[INFO] 程序执行完毕")
     close_game()
 
