@@ -1732,8 +1732,8 @@ def claim_reward():
 
 
 if __name__ == "__main__":
-    fight(n=35)
-    surrender(30, 'bear')
+    fight(n=40)
+    surrender(35, 'bear')
     claim_reward()
     print("[INFO] 程序执行完毕")
     close_game()
