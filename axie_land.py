@@ -573,7 +573,7 @@ def craft_food(plot=None):
         image('craft')
         image('left_arrow', offset=(835, 0)), time.sleep(1)
         image('boiled_carrot')
-        if image('x1', threshold=0.95, click_times=1):
+        if image('x1', threshold=0.95, click_times=2):
             pyautogui.moveRel(-50, 0)
         image('stew')
         if image('x1', threshold=0.95, click_times=1):
@@ -592,9 +592,10 @@ def craft_food(plot=None):
         image('cotton_paper')
         image('craft')  
         image('left_arrow', offset=(835, 0)), time.sleep(1)
-        image('shell_of_weakness')
-        image('craft')
         image('cotton_paper')
+        if image('x1', threshold=0.95, click_times=1):
+            pyautogui.moveRel(-50, 0)
+        image('shell_of_weakness')
         image('craft')
         
 
@@ -1287,7 +1288,7 @@ def buy_favor(plot=None, target=None, item=None):
     time.sleep(3)
     
 
-    if plot in ['57_119', '119_56', '122_138']:  
+    if plot in ['57_119', '105_128', '122_138']:  
         if item:
             for _ in range(1):
                 image(item)  
@@ -1698,9 +1699,10 @@ def stuck(plot=None):
                 pending_buys.append((plot,'diamond ore', 'a_common_diamond_ore', '1000'))
         if image('stuck_coal_dust'):
             if image('not_enough_resources'):
-            #    pending_buys.append((plot, 'Joyy', 'coal_dust'))
                pending_buys.append((plot, 'Joyy', 'charcoal'))
                pending_buys.append((plot, 'SMG', 'charcoal'))
+               pending_buys.append((plot, 'Joyy', 'coal_dust'))
+               pending_buys.append((plot, 'SMG', 'coal_dust'))
             if image('full'):
                 press('esc')
                 sell('uncommon_coal_dust', '1')
@@ -1735,7 +1737,7 @@ def main():
     stuck('57_119')
     alchemy('57_119', 'platinum')
     current_hour = time.localtime().tm_hour
-    if (8 <= current_hour < 12) or (17 <= current_hour < 19):
+    if (8 <= current_hour < 11) or (17 <= current_hour < 18):
         buy_auction(plot='57_119', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=60)
     claim_rewards()
     craft_equip('57_119')
@@ -1743,8 +1745,10 @@ def main():
     # transfer(plot='57_119', item=False, material=True, name='ame', target_plot='sand_122_138')
     # transfer(plot='57_119', item=False, material=True, name='dia', target_plot='sand_122_138') 
     current_hour = time.localtime().tm_hour
-    if (8 <= current_hour < 12) or (17 <= current_hour < 19):      
+    if (8 <= current_hour < 12):      
         transfer(plot='57_119', item=False, material=True, name='cha', target_plot='sand_122_138')
+    if (17 <= current_hour < 19):
+        transfer(plot='57_119', item=False, material=True, name='wood', target_plot='sand_122_138')
     mine('57_119', iron_ore=False, cutting_tree=False)
     collect(5, 0)
 
@@ -1759,7 +1763,7 @@ def main():
     if (8 <= current_hour < 12) or (17 <= current_hour < 19):
         buy_auction(plot='122_138', item='diamond', quality='a_rare_diamond', total_qty=20)
         buy_auction(plot='122_138', item='amethyst', quality='a_rare_amethyst', total_qty=50)
-        buy_auction(plot='122_138', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=20)
+        buy_auction(plot='122_138', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=10)
     claim_rewards()
     craft_equip('122_138')
     craft_food('122_138')
@@ -1769,6 +1773,8 @@ def main():
     current_hour = time.localtime().tm_hour
     if (0 <= current_hour < 6) or (12 <= current_hour < 18):      
         transfer(plot='122_138', item=False, material=True, name='cot', target_plot='arctic_57_119')
+    if (8 <= current_hour < 11) or (19 <= current_hour < 22):
+        transfer(plot='122_138', item=False, material=True, name='tom', target_plot='arctic_57_119')
     # transfer(plot='122_138', item=False, material=True, name='rub', target_plot='sand_105_128')
 
     # mine('122_138', iron_ore=False, cutting_tree=False)
