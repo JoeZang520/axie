@@ -232,7 +232,7 @@ def image_multi(png_list, thresholds=thresholds, region=None, min_x_distance=60,
 
 
 def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=50,
-            return_all_positions=False, color=True):
+            return_all_positions=False, color=True, region=None, gray_diff_threshold=14, offset=(0, 0)):
     start_time = time.time()
     print(f"正在加载 {image_names} ... ")
     found_positions = {}
@@ -242,7 +242,16 @@ def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1
         all_found = True
         for image_name in image_names:
             if image_name not in found_positions:
-                pos = image(image_name, threshold=threshold, click_times=click_times, color=color)  # 使用传入的color参数
+                pos = image(
+                    image_name,
+                    offset=offset,
+                    threshold=threshold,
+                    click_times=click_times,
+                    color=color,
+                    region=region,
+                    gray_diff_threshold=gray_diff_threshold
+                )
+  # 使用传入的color参数与区域
                 if pos is not None:
                     found_positions[image_name] = pos
                     print(f"找到 {image_name} 位置: {pos}")
@@ -1449,7 +1458,7 @@ def in_rank_mode():
     return image('rank_mode') is not None
 
 
-def enter_battle(choice=CHOICE):      
+def enter_battle(choice=CHOICE, mode='ranked'):      
     if not in_rank_mode():
         print("当前不在排位賽中。")      
         if image('red_spot', threshold=0.95):
@@ -1457,10 +1466,11 @@ def enter_battle(choice=CHOICE):
             pyautogui.press('esc')
             pyautogui.click()
             image('origin_cancel', color=False)
-            image('ranked')
+            image(mode)
         image('x_origin', threshold=0.75)
         if image('menu'):
             image('surrender')
+            time.sleep(1)
             image('confirm_surrender', click_times=5)
             image('back'), time.sleep(5)
         if image('next'):
@@ -1470,19 +1480,19 @@ def enter_battle(choice=CHOICE):
                 pyautogui.press('esc')
                 pyautogui.click()
                 image('origin_cancel', color=False)
-                image('ranked')
+                image(mode)
             image('x_origin', threshold=0.75)          
-            loading([choice], timeout=15)
-        elif image('ranked', click_times=0):
+            loading([choice], timeout=30)
+        elif image(mode, click_times=0):
             image('x_origin')
             image('origin_back_arrow')
             image('play')
             time.sleep(2)
-            image('ranked')
+            image(mode)
             loading([choice], timeout=15)
         elif image('play'):
             time.sleep(2)
-            image('ranked')          
+            image(mode)          
             loading([choice], timeout=15)
         image('x_origin', threshold=0.75)
     else:
