@@ -75,7 +75,7 @@ def image(png, threshold=0.8, offset=(0, 0), click_times=1, region=None, color=T
 
     return (center_x, center_y)
 
-def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=50,
+def loading(image_names, check_interval: float = 1, threshold=0.8, click_times=1, timeout=180,
             return_all_positions=False, color=True):
     start_time = time.time()
     print(f"正在加载 {image_names} ... ")
@@ -230,9 +230,9 @@ def main(target_victories=1):
             if 'classic_end' in result:
                 time.sleep(3)
                 for _ in range(5):
-                    if image('classic_1.png', offset=(0, 60), click_times=2):
+                    if image('classic_1.png', offset=(0, 60), click_times=2, color=False):
                         pyautogui.moveRel(0, -100)                  
-                    if image('classic_0.png', offset=(0, 60), click_times=2): 
+                    if image('classic_0.png', offset=(0, 60), click_times=2, color=False): 
                         pyautogui.moveRel(0, -100)
                 print("出牌结束")
                 
@@ -287,9 +287,9 @@ def main(target_victories=1):
 
 if __name__ == '__main__':
     # 设置目标胜利次数，默认为1
-    current_hour = time.localtime().tm_hour
-    if (11 <= current_hour < 14):
-        main(target_victories=1)
+    # current_hour = time.localtime().tm_hour
+    # if (11 <= current_hour < 14):
+        main(target_victories=10)
     
     
                         
