@@ -13,6 +13,12 @@ AXIE_LAND_PATH = 'axie_land.py'
 AXIE_CLASSIC_PATH = 'axie_classic.py'
 PYTHON_EXECUTABLE = sys.executable  # 获取当前Python解释器路径
 
+
+
+
+
+
+
 task_queue = queue.Queue()
 current_task = None
 last_status_print = 0  # 用于控制状态打印频率

@@ -1,15 +1,25 @@
 # 可變信息
-MIDDLE_ROLE = "middle4548"
+MIDDLE_ROLE = "middle46497"
 BACK_ROLE = "back11638783"
-FRONT_ROLE = "front110136"
-CHOICE = "go_first"  # 可以改为: "go_first" 或 "go_second" 或 "no_pref"
+FRONT_ROLE = "front1409"
+CHOICE = "go_second"  # 可以改为: "go_first" 或 "go_second" 或 "no_pref"
 exe_path = r"E:\Axie Infinity - Origins\AxieInfinity-Origins.exe"
 CLASH_EXE_PATH = r"C:\Users\J9\Desktop\Clash.for.Windows-0.20.39-win\Clash for Windows.exe"
 
 axie_cards = {
 
     "middle4548": [
-        ("zeal", 0, False, None, None),  # 0费
+        # ("zeal", 0, False, None, None),  # 0费
+        ("green1", 1, True, "ally", "all"),
+        ("confident", 0, True, "ally", "all"),  # 0费
+        ("little_branch", 2, False, None, None),
+        ("puppy_ear", 1, False, None, None),      
+        ("tiny_dino", 1, False, None, None),
+        ("hero", 1, False, None, None),
+     
+    ],
+    "middle46497": [
+        ("puppy_eye", 0, True, "ally", "all"),  # 0费
         ("confident", 0, True, "ally", "all"),  # 0费
         ("little_branch", 2, False, None, None),
         ("puppy_ear", 1, False, None, None),      
@@ -61,17 +71,19 @@ axie_cards = {
         ("mint", 1, False, None, None),
     ],
     "back11638783": [
-        # ("zeal", 0, False, None, None),  # 0费
-        ("blue1", 1, True, "ally", "all"),
-        ("silence", 1, True, "ally", "all"),   
-        # ("cattail", 1, True, "ally", "all"),
-        ("cloud", 0, True, "ally", "all"), # 0费
+        ("zeal", 0, False, None, None),  # 0费
+        # ("blue1", 1, True, "ally", "all"),
+        # ("silence", 1, True, "ally", "all"),
+        ("confident", 0, True, "ally", "all"),  # 0费     
+        ("cattail", 1, True, "ally", "all"),
+        # ("cloud", 0, True, "ally", "all"), # 0费
         # ("sakura", 1, True, "ally", "all"),
         ("innocent_lamb", 0, False, None, None),  
-        # ("rose_bud", 1, True, "ally", "all"),
-        ("strawberry", 2, True, "ally", "all"),
-        ("strawberry_son", 0, True, "ally", "all"),
-        ("mint", 1, False, None, None),
+        ("rose_bud", 1, True, "ally", "all"),
+        # ("strawberry", 2, True, "ally", "all"),
+        # ("strawberry_son", 0, True, "ally", "all"),
+        ("bidens", 1, True, "ally", "all"),
+        # ("mint", 1, False, None, None),
     ],
     "back11772419": [
         ("zeal", 0, False, None, None),  # 0费
@@ -97,7 +109,7 @@ axie_cards = {
         ("green2", 1, True, "ally", "all"), 
         ("cuckoo", 1, True, "ally", "all"),
     ],
-    "back11949081": [
+    "front11949081": [
         ("cucumber", 1, False, None, None),
         ("sakura", 1, True, "ally", "all"),
         ("cattail", 1, True, "ally", "all"),
@@ -109,8 +121,8 @@ axie_cards = {
         ("zeal", 0, False, None, None),  # 0费
         ("innocent_lamb", 0, False, None, None),  
         ("cattail", 1, True, "ally", "all"),
-        ("green1", 1, True, "ally", "all"), 
-        ("green2", 1, True, "ally", "all"), 
+        ("rose_bud", 1, True, "ally", "all"), 
+        ("confident", 0, True, "ally", "all"), 
         ("bidens", 1, True, "ally", "all"),
     ],
     "back11468703": [
@@ -132,11 +144,11 @@ axie_cards = {
         # ("bidens", 1, True, "ally", "all"),
         ("sponge", 2, False, None, None),
     ],
-    "back12036070": [
+    "front12036070": [
         ("zeal", 0, False, None, None),  # 0费
         ("innocent_lamb", 0, False, None, None),  
         ("cattail", 1, True, "ally", "all"),
-        ("green1", 1, True, "ally", "all"), 
+        ("blue1", 1, True, "ally", "all"), 
         ("silence", 1, True, "ally", "all"),
         ("cuckoo", 1, True, "ally", "all"),
     ],
@@ -155,9 +167,12 @@ axie_cards = {
         ("cattail", 1, True, "ally", "all"),
         ("confident", 0, True, "ally", "all"),  # 0费
         ("zeal", 0, False, None, None),  # 0费 
-        ("lotus", 1, True, "ally", "all"),
-        ("rose_bud", 1, True, "ally", "all"),
-        ("bidens", 1, True, "ally", "all"),
+        # ("lotus", 1, True, "ally", "all"),
+        ("sakura", 1, True, "ally", "all"),
+        # ("rose_bud", 1, True, "ally", "all"),
+        ("bumpy", 1, True, "ally", "all"),
+        # ("bidens", 1, True, "ally", "all"),
+        ("mint", 1, False, None, None),
     ],
     "front11935341": [
         ("cattail", 1, True, "ally", "all"),
@@ -236,8 +251,8 @@ axie_cards = {
 
 }
 
-card_priority = ['innocent_lamb', 'sakura', 'sakura_j', 'bumpy',
-    'confident', 'puppy_eye', 'cloud', 'little_branch', 'shiba', 'puppy_ear', 'belieber', 'ronin', 'zeal', 'hero','tiny_dino', 'peas',
+card_priority = ['innocent_lamb', 'little_branch', 'sakura', 'sakura_j', 'bumpy',
+    'confident', 'puppy_eye', 'cloud', 'shiba', 'puppy_ear', 'belieber', 'ronin', 'zeal', 'hero','tiny_dino', 'peas',
     'energy_coin_card', 'cattail', 'ant', 'wall_gecko', 'cucumber', 'mint', 'silence', 'biden', 'rose_bud','lotus', 'green1', 'green2', 'green3', 'cuckoo', 'hermit', 'clover', 'shoal_star',
     'glove', 'sword', 'knife', 'shield', 'axe'
 ]
@@ -247,8 +262,8 @@ thresholds = {
     "blackmail": 0.9,
     "energy_coin": 0.9,
     BACK_ROLE: 0.65,
-    MIDDLE_ROLE: 0.7,
-    FRONT_ROLE: 0.8,
+    MIDDLE_ROLE: 0.6,
+    FRONT_ROLE: 0.65,
     "burn": 0.9,
     "goo": 0.9,
     "jinx": 0.9,

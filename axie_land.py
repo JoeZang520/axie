@@ -146,6 +146,11 @@ thresholds = {
     "tree7": 0.9,
     "tree8": 0.9,
     "tree9": 0.9,
+    "tree10": 0.9,
+    "tree11": 0.9,
+    "tree12": 0.9,
+    "tree13": 0.9,
+    "tree14": 0.9,
     "stone1": 0.95,
     "stone2": 0.9,
     "stone4": 0.9,
@@ -293,7 +298,7 @@ def enter_game():
         loading(["acoin"])
     if not in_game():
         print("当前不在游戏中。")
-        subprocess.Popen(r"E:\Axie Infinity - Homeland\Homeland.exe")
+        subprocess.Popen(r"E:\Homeland-1.11.12-195-win\Homeland-1.11.12-195-windows\Axie Infinity - Homeland.exe")
         time.sleep(10)     
         loading(["join"], click_times=2)
         loading(["acoin"])
@@ -561,9 +566,9 @@ def craft_food(plot=None):
         image('acoin', offset=(-100, 0))
 
     
-    if plot=='122_138':
+    if plot=='113_18':
         image('acoin')
-        pyautogui.moveRel(-136, 327)
+        pyautogui.moveRel(714, 437)
         pyautogui.click(), time.sleep(1), pyautogui.click()
         time.sleep(2)
         image('boiled_carrot')
@@ -571,14 +576,14 @@ def craft_food(plot=None):
         image('left_arrow', offset=(835, 0)), time.sleep(1)
         image('boiled_carrot')
         image('craft')
-        image('left_arrow', offset=(835, 0)), time.sleep(1)
-        image('boiled_carrot')
-        if image('x1', threshold=0.95, click_times=2):
-            pyautogui.moveRel(-50, 0)
-        image('stew')
-        if image('x1', threshold=0.95, click_times=1):
-            pyautogui.moveRel(-50, 0)
-            pyautogui.click(), time.sleep(1)
+        # image('left_arrow', offset=(835, 0)), time.sleep(1)
+        # image('boiled_carrot')
+        # if image('x1', threshold=0.95, click_times=2):
+        #     pyautogui.moveRel(-50, 0)
+        # image('stew')
+        # if image('x1', threshold=0.95, click_times=1):
+        #     pyautogui.moveRel(-50, 0)
+        #     pyautogui.click(), time.sleep(1)
         
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)
@@ -595,7 +600,7 @@ def craft_food(plot=None):
         image('cotton_paper')
         if image('x1', threshold=0.95, click_times=1):
             pyautogui.moveRel(-50, 0)
-        image('shell_of_weakness')
+        image('shell_of_large_area_damage')
         image('craft')
         
 
@@ -603,9 +608,9 @@ def craft_food(plot=None):
         image('acoin', offset=(-100, 0))
 
    
-    if plot=='57_119':
+    if plot=='119_56':
         image('acoin')
-        pyautogui.moveRel(-228, 363)
+        pyautogui.moveRel(250, 144)
         pyautogui.click(), time.sleep(1), pyautogui.click()
         time.sleep(2)
         image('stew')
@@ -628,6 +633,10 @@ def craft_food(plot=None):
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)
         image('stew')
+        if image('x1', threshold=0.95):
+            pyautogui.moveRel(-50, 0)
+            pyautogui.click(), time.sleep(1)
+        image('beeswax')
         if image('x1', threshold=0.95):
             pyautogui.moveRel(-50, 0)
             pyautogui.click(), time.sleep(1)
@@ -712,23 +721,25 @@ def craft_equip(plot=None):
         image('acoin', offset=(-100, 0))       
 
     
-    if plot=='122_138':
+    if plot=='113_18':
         image('acoin')
-        pyautogui.moveRel(470, 566)
+        pyautogui.moveRel(230, 168)
         pyautogui.click(), time.sleep(1), pyautogui.click()
         time.sleep(2)
-        image('platinum_sphere')
+        image('platinum_long_sword', gray_diff_threshold=9)
         if not (image('rare_platinum_ingot', threshold=0.98, click_times=0) or 
                 image('uncommon_platinum_ingot', threshold=0.98, click_times=0) or
                 image('epic_platinum_ingot', threshold=0.98, click_times=0) or
                 image('legendary_platinum_ingot', threshold=0.98, click_times=0) or
                 image('mythical_platinum_ingot', threshold=0.98, click_times=0)):
             if image('x1', threshold=0.95):
+                if loading(['not'], check_interval=0.1, click_times=0, timeout=3):
+                    print('[WARN] 材料数量不够')
+                    pending_buys.append((plot,'platinum i', None, 0))
                 pyautogui.moveRel(-50, 0)
                 pyautogui.click(), time.sleep(1)
-
         image('left_arrow', offset=(835, 0)), time.sleep(1)
-        image('platinum_sphere')
+        image('platinum_long_sword', gray_diff_threshold=9)
         if not (image('rare_platinum_ingot', threshold=0.98, click_times=0) or 
                 image('uncommon_platinum_ingot', threshold=0.98, click_times=0) or
                 image('epic_platinum_ingot', threshold=0.98, click_times=0) or
@@ -736,7 +747,27 @@ def craft_equip(plot=None):
                 image('mythical_platinum_ingot', threshold=0.98, click_times=0)):
             if image('x1', threshold=0.95):
                 pyautogui.moveRel(-50, 0)
-                pyautogui.click(), time.sleep(1)
+                pyautogui.click(), time.sleep(1)   
+        # image('platinum_sphere')
+        # if not (image('rare_platinum_ingot', threshold=0.98, click_times=0) or 
+        #         image('uncommon_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('epic_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('legendary_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('mythical_platinum_ingot', threshold=0.98, click_times=0)):
+        #     if image('x1', threshold=0.95):
+        #         pyautogui.moveRel(-50, 0)
+        #         pyautogui.click(), time.sleep(1)
+
+        # image('left_arrow', offset=(835, 0)), time.sleep(1)
+        # image('platinum_sphere')
+        # if not (image('rare_platinum_ingot', threshold=0.98, click_times=0) or 
+        #         image('uncommon_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('epic_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('legendary_platinum_ingot', threshold=0.98, click_times=0) or
+        #         image('mythical_platinum_ingot', threshold=0.98, click_times=0)):
+        #     if image('x1', threshold=0.95):
+        #         pyautogui.moveRel(-50, 0)
+        #         pyautogui.click(), time.sleep(1)
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)
         image('platinum_helmet')
@@ -753,7 +784,7 @@ def craft_equip(plot=None):
                 pyautogui.click(), time.sleep(1)
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)
-        image('platinum_plate_mail')
+        image('platinum_helmet')
         if not (image('rare_platinum_ingot', threshold=0.98, click_times=0) or 
                 image('uncommon_platinum_ingot', threshold=0.98, click_times=0) or
                 image('epic_platinum_ingot', threshold=0.98, click_times=0) or
@@ -781,9 +812,9 @@ def craft_equip(plot=None):
         
 
 
-    if plot=='57_119':
+    if plot=='119_56':
         image('acoin')
-        pyautogui.moveRel(887, 352)
+        pyautogui.moveRel(642, 479)
         pyautogui.click(), time.sleep(1), pyautogui.click()
         time.sleep(2)
         image('platinum_long_sword', gray_diff_threshold=9)
@@ -897,11 +928,11 @@ def countdown(activity, seconds):
 def switch_plot(plot):
     enter_game()
     image('plot')
-    if plot == '57_119' or plot == '123_122' or plot == '119_56' or plot == '122_138':
+    if plot in ['57_119', '123_122', '119_56']:
         image('acoin', offset=(-420, 280))  # 自己的地
         image(plot)
     time.sleep(4)
-    if plot == '105_128':
+    if plot in ['105_128', '113_18', '113_18']:
         image('acoin', offset=(-340, 280))  # 别人的地
         image(plot)
     time.sleep(4)
@@ -989,6 +1020,9 @@ def collect_post(Transfers=True, Orders=False):
             if image('arrived'):
                 time.sleep(2)
                 image('claim')
+                time.sleep(3)
+                if image('confirm_post'):
+                    break
                 if loading(['no_avail'], check_interval=0.1, click_times=0, timeout=3):
                     break
 
@@ -1048,6 +1082,8 @@ def collect_post(Transfers=True, Orders=False):
                 time.sleep(2)
                 image('claim')
                 time.sleep(3)
+                if image('confirm_post'):
+                    break
             if image('unpacking'):
                 time.sleep(3)
                 if image('enough', offset=(-180, 0)):
@@ -1105,7 +1141,7 @@ def transfer(plot=None, item=False, material=False, name=None, target_plot=None)
                 for i in range(5):
                     pyautogui.click(start_x + i * 140, start_y)
                     image('mini_gold_bracelet', offset=(600, 0))  # 表示不传送gold_bracelet
-                    if plot == '122_138':
+                    if plot == '113_18':
                     #     image('mini_boiled_carrot', offset=(600, 0))  # 该地也不传送boiled_carrot
                         image('mini_cotton_paper', offset=(600, 0))  # 该地也不传送cotton_paper
                         
@@ -1224,17 +1260,17 @@ def adventure(plot=None, equip=False):
             if equip == True: 
                  press('space')
             current_weekday = datetime.now().weekday()
-            if current_weekday in () and plot == '57_119':  
+            if current_weekday in () and plot == '119_56':  
                 press('space')                                                
             image('+', region=serch_region)
             current_weekday = datetime.now().weekday()
-            if current_weekday in () and plot == '57_119':  
+            if current_weekday in () and plot == '119_56':  
                 press('space')
             if equip == True: 
                  press('space') 
             image('+', region=serch_region)
             current_weekday = datetime.now().weekday()
-            if current_weekday in () and plot == '57_119': 
+            if current_weekday in () and plot == '119_56': 
                 press('space')
             if equip == True: 
                  press('space') 
@@ -1288,7 +1324,7 @@ def buy_favor(plot=None, target=None, item=None):
     time.sleep(3)
     
 
-    if plot in ['57_119', '105_128', '122_138']:  
+    if plot in ['119_56', '105_128', '113_18']:  
         if item:
             for _ in range(1):
                 image(item)  
@@ -1385,12 +1421,12 @@ def find_best_platinum_quality():
     返回: (quality名称, 建议购买数量) 或 (None, None)
     """
     qualities = [
-        ('a_common_platinum_i', 1600),
-        ('a_uncommon_platinum_i', 800),
-        ('a_rare_platinum_i', 400),
-        ('a_epic_platinum_i', 200),
-        ('a_legendary_platinum_i', 100),
-        ('a_mythical_platinum_i', 50)
+        ('a_common_platinum_i', 800),
+        ('a_uncommon_platinum_i', 400),
+        ('a_rare_platinum_i', 200),
+        ('a_epic_platinum_i', 100),
+        ('a_legendary_platinum_i', 50),
+        ('a_mythical_platinum_i', 25)
     ]
     
     best_quality = None
@@ -1504,7 +1540,7 @@ def buy_auction(plot=None, item=None, quality=None, total_qty=0):
         image(quality, offset=(120, 125))  # 点击需要购买品质的物品
     time.sleep(6)
 
-    if plot in ('57_119', '122_138', '123_122', '113_18', '105_128'):   
+    if plot in ('119_56', '123_122', '113_18', '105_128'):   
         if item:
             try:
                 total_qty = int(total_qty)
@@ -1588,6 +1624,52 @@ def buy_auction(plot=None, item=None, quality=None, total_qty=0):
     press('esc') 
     pause(3)
 
+def get_quantity(item):
+    """
+    识别物品数量
+    :param item: 要识别的物品图片名称
+    :return: 识别到的数量（整数），如果识别失败返回100（避免误触发购买）
+    """
+    pos = image(item, threshold=0.95)
+    if pos is not None:
+        time.sleep(3)
+        image(item, threshold=0.7, region=(0, 0, 1920, 540))
+    else:
+        print(f"[WARN] 未找到 {item} 图片")
+        press('esc')
+        pause(3)
+        return 100   
+    
+
+    pos = image('x_land', click_times=0)
+    if pos is None:
+        print(f"[WARN] 未找到 x_land 定位点")
+        press('esc')
+        pause(3)
+        return 100
+    
+    px, py = pos
+    roi = (px - 116, py + 315, px - 38, py + 345)
+    
+    digits = read_digits_from_region(roi)
+    if digits is not None:
+        try:
+            quantity = int(digits)
+            print(f"[INFO] {item} 识别到数量: {quantity}")
+            press('esc')
+            pause(3)
+            return quantity
+        except ValueError:
+            print(f"[WARN] {item} 数字转换失败: {digits}")
+            press('esc')
+            pause(3)
+            return 100
+    else:
+        print(f"[INFO] {item} 未识别到有效数字")
+        press('esc')
+        pause(3)
+        return 100
+
 
 def claim_rewards():
     enter_game()
@@ -1641,8 +1723,6 @@ def alchemy(plot=None, name=None):
         image('acoin', offset=(413, 442), click_times=2)
     if plot == '123_122':
         image('acoin', offset=(120, 320), click_times=2)
-    if plot == '122_138':
-        image('acoin', offset=(72, 363), click_times=2)
     if plot == '105_128':
         image('acoin', offset=(237, 440), click_times=2)
     if plot == '113_18':
@@ -1667,23 +1747,26 @@ def alchemy(plot=None, name=None):
 
 def stuck(plot=None):
     enter_game()
+    qty_gold = get_quantity('qty_gold')
+    qty_silver = get_quantity('qty_silver')
+    qty_leather = get_quantity('qty_leather')
 
     pending_buys = []      
             
-    if plot in ('57_119', '122_138', '105_128'):
+    if plot in ('119_56', '113_18', '105_128'):
         image('stuck')
         time.sleep(2)
         if image('stuck_leather'):
-            if image('not_enough_resources'):
-                pending_buys.append((plot,'cow feed', 'a_uncommon_cow_feed', '600'))
+            if image('not_enough_resources') and qty_leather < 200:
+                pending_buys.append((plot,'cow feed', 'a_uncommon_cow_feed', '1000'))
         # if image('stuck_sheep_meat'):
         #     if image('not_enough_resources'):
         #         pending_buys.append((plot, 'sheep feed', 'a_uncommon_sheep_feed', '500'))
         if image('stuck_gold'):
-            if image('not_enough_resources'):
+            if image('not_enough_resources') and qty_gold < 10:
                 pending_buys.append((plot,'gold ore', 'a_common_gold_ore', '1000'))
         if image('stuck_silver'):
-            if image('not_enough_resources'):
+            if image('not_enough_resources') and qty_silver < 20:
                 pending_buys.append((plot,'silver ore', 'a_common_silver_ore', '1000'))
         if image('stuck_emerald', threshold=0.95):
             if image('not_enough_resources'):
@@ -1696,7 +1779,7 @@ def stuck(plot=None):
                 pending_buys.append((plot,'amethyst ore', 'a_common_amethyst_ore', '1000'))
         if image('stuck_diamond', threshold=0.95):
             if image('not_enough_resources'):
-                pending_buys.append((plot,'diamond ore', 'a_common_diamond_ore', '1000'))
+                pending_buys.append((plot,'diamond ore', 'a_common_diamond_ore', '2000'))
         if image('stuck_coal_dust'):
             if image('not_enough_resources'):
                pending_buys.append((plot, 'Joyy', 'charcoal'))
@@ -1705,6 +1788,7 @@ def stuck(plot=None):
                pending_buys.append((plot, 'SMG', 'coal_dust'))
             if image('full'):
                 press('esc')
+                sell('common_coal_dust', '1')
                 sell('uncommon_coal_dust', '1')
                 sell('rare_coal_dust', '2')
                 sell('epic_coal_dust', '3') 
@@ -1731,77 +1815,55 @@ def stuck(plot=None):
 
 
 def main():
-    switch_plot('57_119')
+    switch_plot('119_56')
     discard(ores=['copper_ore', 'iron_ore'], ingots=['bronze_ingot'], diamonds=['common_topaz', 'uncommon_topaz', 'rare_topaz', 'common_emerald', 'uncommon_emerald'])
     collect_post(Transfers=True, Orders=True)
-    stuck('57_119')
-    alchemy('57_119', 'platinum')
+    stuck('119_56')
+    alchemy('119_56', 'platinum')
     current_hour = time.localtime().tm_hour
     if (8 <= current_hour < 11) or (17 <= current_hour < 18):
-        buy_auction(plot='57_119', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=60)
+        buy_auction(plot='119_56', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=60)
     claim_rewards()
-    craft_equip('57_119')
-    craft_food('57_119')
-    # transfer(plot='57_119', item=False, material=True, name='ame', target_plot='sand_122_138')
+    craft_equip('119_56')
+    craft_food('119_56')
+    # transfer(plot='57_119', item=False, material=True, name='ame', target_plot='forest_113_18')
     # transfer(plot='57_119', item=False, material=True, name='dia', target_plot='sand_122_138') 
     current_hour = time.localtime().tm_hour
     if (8 <= current_hour < 12):      
-        transfer(plot='57_119', item=False, material=True, name='cha', target_plot='sand_122_138')
-    if (17 <= current_hour < 19):
-        transfer(plot='57_119', item=False, material=True, name='wood', target_plot='sand_122_138')
-    mine('57_119', iron_ore=False, cutting_tree=False)
+        transfer(plot='119_56', item=False, material=True, name='cha', target_plot='forest_113_18')
+    if (17 <= current_hour < 19) or (0 <= current_hour < 4):
+        transfer(plot='119_56', item=False, material=True, name='wood', target_plot='forest_113_18')
+    mine('119_56', iron_ore=False, cutting_tree=False)
     collect(5, 0)
 
 
 
-    switch_plot('122_138')
+    switch_plot('113_18')
     discard(ores=['copper_ore', 'iron_ore'], ingots=['bronze_ingot'])
     collect_post(Transfers=True, Orders=True)
-    stuck('122_138')
-    alchemy('122_138', 'platinum')
+    stuck('113_18')
+    alchemy('113_18', 'platinum')
     current_hour = time.localtime().tm_hour
     if (8 <= current_hour < 12) or (17 <= current_hour < 19):
-        buy_auction(plot='122_138', item='diamond', quality='a_rare_diamond', total_qty=20)
-        buy_auction(plot='122_138', item='amethyst', quality='a_rare_amethyst', total_qty=50)
-        buy_auction(plot='122_138', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=10)
+        buy_auction(plot='113_18', item='diamond', quality='a_rare_diamond', total_qty=20)
+        # buy_auction(plot='113_18', item='amethyst', quality='a_rare_amethyst', total_qty=50)
+        buy_auction(plot='113_18', item='sheep meat', quality='a_uncommon_sheep_meat', total_qty=30)
     claim_rewards()
-    craft_equip('122_138')
-    craft_food('122_138')
-    transfer(plot='122_138', item=True, material=False, name=None, target_plot='arctic_57_119') 
-    # transfer(plot='122_138', item=False, material=True, name='top', target_plot='arctic_57_119') 
-    # transfer(plot='122_138', item=False, material=True, name='eme', target_plot='arctic_57_119') 
+    craft_equip('113_18')
+    craft_food('113_18')
+    transfer(plot='113_18', item=True, material=False, name=None, target_plot='forest_119_56') 
+    # transfer(plot='113_18', item=False, material=True, name='top', target_plot='forest_119_56') 
+    # transfer(plot='113_18', item=False, material=True, name='eme', target_plot='forest_119_56') 
     current_hour = time.localtime().tm_hour
     if (0 <= current_hour < 6) or (12 <= current_hour < 18):      
-        transfer(plot='122_138', item=False, material=True, name='cot', target_plot='arctic_57_119')
+        transfer(plot='113_18', item=False, material=True, name='cot', target_plot='forest_119_56')
     if (8 <= current_hour < 11) or (19 <= current_hour < 22):
-        transfer(plot='122_138', item=False, material=True, name='tom', target_plot='arctic_57_119')
-    # transfer(plot='122_138', item=False, material=True, name='rub', target_plot='sand_105_128')
+        transfer(plot='122_138', item=False, material=True, name='tom', target_plot='forest_119_56')
+    # transfer(plot='113_18', item=False, material=True, name='rub', target_plot='sand_105_128')
 
-    # mine('122_138', iron_ore=False, cutting_tree=False)
+    # mine('113_18', iron_ore=False, cutting_tree=False)
     collect(5, 0)
 
-
-    switch_plot('105_128')
-    discard(ores=['copper_ore', 'iron_ore'], ingots=['bronze_ingot'], diamonds=['common_emerald', 'uncommon_emerald'])
-    collect_post(Transfers=True, Orders=True)
-    stuck('105_128')
-    alchemy('105_128', 'platinum')
-    # current_hour = time.localtime().tm_hour
-    # if (8 <= current_hour < 12) or (17 <= current_hour < 20):
-    #     # buy_auction(plot='105_128', item='gold ore', quality='a_common_gold_ore', total_qty=50)
-    #     buy_auction(plot='105_128', item='platinum i', quality=None, total_qty=0)
-    claim_rewards() 
-    # sell('uncommon_coal_dust', '1')
-    craft_equip('105_128')
-    craft_food('105_128')
-
-    transfer(plot='105_128', item=True, material=False, name=None, target_plot='arctic_57_119') 
-    # transfer(plot='105_128', item=False, material=True, name='cot', target_plot='arctic_57_119')
-    # transfer(plot='105_128', item=False, material=True, name='platinum i', target_plot='arctic_57_119')  
-    # transfer(plot='105_128', item=False, material=True, name='ruby', target_plot='sand_122_138')  
-
-    # mine('105_128', iron_ore=False, cutting_tree=False)
-    collect(5, 0)
 
 
 if __name__ == "__main__": 
@@ -1810,8 +1872,7 @@ if __name__ == "__main__":
         current_hour = time.localtime().tm_hour
         if (8 <= current_hour < 12) or (17 <= current_hour < 19):
             adventure(plot='57_119', equip=False)
-            adventure(plot='122_138', equip=False)    
-            adventure(plot='105_128', equip=False) 
+            adventure(plot='113_18', equip=False)     
             close_game()      
             countdown('下一次收菜', 2)
         else:

@@ -463,8 +463,8 @@ def get_all_positions():
     # 4排每排起点坐标，基于icon点偏移确定（需你测量替换）
     # 这里的坐标是血条位置
     row_starts = {
-        'A': (icon_x - 367, icon_y + 367),
-        'B': (icon_x - 463, icon_y + 452),
+        'A': (icon_x - 367, icon_y + 338),
+        'B': (icon_x - 463, icon_y + 418),
         'C': (icon_x + 374, icon_y + 367),
         'D': (icon_x + 277, icon_y + 447)
     }
@@ -552,7 +552,7 @@ def get_axie_info():
     dead_status = {}
     for pos_name, (axie_x, axie_y) in all_positions.items():
         region = (axie_x - 100, axie_y - 100, 200, 200)
-        found = image(pos_name, region=region, threshold=0.85, gray_diff_threshold=1.5, click_times=0, color=True)
+        found = image(pos_name, region=region, threshold=0.85, click_times=0, color=False)
         dead_status[pos_name] = bool(found)
 
     # 获取血量信息
@@ -751,7 +751,7 @@ def keep_card(fragment_cost):
         print(f"[DEBUG] 搜索区域: 左上({x1}, {y1}), 右下({x2}, {y2})")
 
         # 遍历所有优先保留的卡片
-        keep_priority_cards = ['little_branch', 'zeal', 'puppy_ear', 'belieber', 'hero']
+        keep_priority_cards = ['little_branch', 'puppy_ear', 'belieber', 'hero', 'zeal']
 
         found_count = 0  # 找到的卡片数量
         total_cost = 0  # 总消耗的碎片
@@ -873,7 +873,7 @@ def play_hero(hand_cards, used_cards, axie_info, energy):
 
             # 根据card_priority排序
             effective_priority = list(card_priority)
-            if not (image('round_1', threshold=0.96, click_times=0) or image('round_2', threshold=0.97, click_times=0) or image('round_3', threshold=0.97, click_times=0)):
+            if not (image('round_1', threshold=0.96, gray_diff_threshold=14, click_times=0) or image('round_2', threshold=0.97, gray_diff_threshold=14, click_times=0) or image('round_3', threshold=0.97, gray_diff_threshold=14, click_times=0)):
                 if 'tiny_dino' in effective_priority and 'hero' in effective_priority:
                     try:
                         effective_priority.remove('tiny_dino')
@@ -936,7 +936,7 @@ def play_hero(hand_cards, used_cards, axie_info, energy):
                         if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                             pyautogui.click()
                             time.sleep(1)
-                            pyautogui.moveRel(-150, 0)
+                            pyautogui.moveRel(-110, 0)
                             pyautogui.click()
                             time.sleep(1)
                         else:
@@ -1028,7 +1028,7 @@ def play_cards(axie_info, hand_cards, energy):
                     if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                         pyautogui.click()
                         time.sleep(1)
-                        pyautogui.moveRel(-150, 0)
+                        pyautogui.moveRel(-110, 0)
                         pyautogui.click()
                         time.sleep(1)
                     else:
@@ -1217,7 +1217,7 @@ def play_cards(axie_info, hand_cards, energy):
                 if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                     pyautogui.click()
                     time.sleep(1)
-                    pyautogui.moveRel(-150, 0)
+                    pyautogui.moveRel(-110, 0)
                     pyautogui.click()
                     time.sleep(1)
                 else:
@@ -1321,7 +1321,7 @@ def play_cards(axie_info, hand_cards, energy):
                             if not (image('bless', click_times=0) or image('bless_grey', click_times=0, gray_diff_threshold=0.4)):
                                 pyautogui.click()
                                 time.sleep(1)
-                                pyautogui.moveRel(-150, 0)
+                                pyautogui.moveRel(-110, 0)
                                 pyautogui.click()
                                 time.sleep(1)
                             else:
@@ -1595,7 +1595,7 @@ def fight(n=40):
 
             # 等待 'end' 或 'tap' 图像加载，超时后进行胜负判断
             print("[INFO] 等待出牌...")
-            found_image = loading(['end', 'tap', 'tap1'], check_interval=1, click_times=0, timeout=45, color=False)
+            found_image = loading(['end', 'tap', 'tap1'], check_interval=1, click_times=0, timeout=90, color=False)
             print(f"[INFO] 检测到图像: {found_image}")
 
             if found_image == 'tap' or found_image == 'tap1':
@@ -1733,7 +1733,7 @@ def claim_reward():
 
 if __name__ == "__main__":
     fight(n=40)
-    surrender(35, 'bear')
+    surrender(1, 'bear')
     claim_reward()
     print("[INFO] 程序执行完毕")
     close_game()
