@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 AXIE_ORIGIN_PATH = 'axie_origin.py'
 AXIE_LAND_PATH = 'axie_land.py'
 AXIE_CLASSIC_PATH = 'axie_classic.py'
+WILD_FOREST_PATH = 'wildforest.py'
 PYTHON_EXECUTABLE = sys.executable  # 获取当前Python解释器路径
 
 task_queue = queue.Queue()
@@ -18,9 +19,10 @@ current_task = None
 last_status_print = 0  # 用于控制状态打印频率
 
 # 是否启动时立即执行任务
-IMMEDIATE_RUN_LAND = True   # 设置为False则不立即执行axie_land
+IMMEDIATE_RUN_LAND = False   # 设置为False则不立即执行axie_land
 IMMEDIATE_RUN_ORIGIN = True # 设置为False则不立即执行axie_origin
 IMMEDIATE_RUN_CLASSIC = True  # 新增，是否启动时立即执行classic
+IMMEDIATE_RUN_WILD_FOREST = True  # 新增，是否启动时立即执行wildforest
 
 def run_script(script_name):
     global current_task
@@ -73,12 +75,12 @@ def print_schedule_status():
         print(f"- 预计执行时间：{next_task.scheduled_time}")
 
 # 移除定时任务，改为轮流执行两个脚本
-# SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH]
-SCRIPTS = [AXIE_LAND_PATH, AXIE_ORIGIN_PATH, AXIE_CLASSIC_PATH]
+SCRIPTS = [AXIE_LAND_PATH]
+# SCRIPTS = [AXIE_LAND_PATH, WILD_FOREST_PATH]
 # SCRIPTS = [AXIE_LAND_PATH, AXIE_CLASSIC_PATH]
-IMMEDIATE_FLAGS = [IMMEDIATE_RUN_LAND, IMMEDIATE_RUN_ORIGIN, IMMEDIATE_RUN_CLASSIC]
+IMMEDIATE_FLAGS = [IMMEDIATE_RUN_LAND, IMMEDIATE_RUN_WILD_FOREST]
 script_index = -1
-print("中控脚本已启动，将轮流执行axie_land、axie_origin和axie_classic...")
+print("中控脚本已启动，将轮流执行axie_land和wildforest...")
 
 # 启动工作线程
 t1 = threading.Thread(target=worker, daemon=True)
@@ -90,6 +92,7 @@ for i, (script, flag) in enumerate(zip(SCRIPTS, IMMEDIATE_FLAGS)):
         print(f"[schedule] 立即执行{script}任务")
         task_queue.put(script)
         script_index = i
+
 
 while True:
     # 如果队列空了，自动加入下一个脚本
