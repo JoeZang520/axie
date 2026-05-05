@@ -580,36 +580,36 @@ def craft_food(plot=None):
    
     if plot=='121_116':
         image('acoin')
-        pyautogui.moveRel(496, 499)
+        pyautogui.moveRel(576, 531)
         pyautogui.click(), time.sleep(1), pyautogui.click()
         time.sleep(2)
-        image('stew')
-        if image('x1', threshold=0.95, click_times=1):
-            pyautogui.moveRel(-50, 0)
-        image('beeswax')
+        # image('stew')
+        # if image('x1', threshold=0.95, click_times=1):
+        #     pyautogui.moveRel(-50, 0)
+        image('beeswax', threshold=0.8)
         if image('x1', threshold=0.95):
             pyautogui.moveRel(-50, 0)
             pyautogui.click(), time.sleep(1)               
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)   
-        image('stew')
-        if image('x1', threshold=0.95, click_times=1):
-            pyautogui.moveRel(-50, 0)                 
-        image('beeswax')
+        # image('stew')
+        # if image('x1', threshold=0.95, click_times=1):
+        #     pyautogui.moveRel(-50, 0)                 
+        image('beeswax', threshold=0.8)
         if image('x1', threshold=0.95):
             pyautogui.moveRel(-50, 0)
             pyautogui.click(), time.sleep(1)
         
 
-        image('left_arrow', offset=(835, 0)), time.sleep(1)
-        image('stew')
-        if image('x1', threshold=0.95):
-            pyautogui.moveRel(-50, 0)
-            pyautogui.click(), time.sleep(1)
-        image('beeswax')
-        if image('x1', threshold=0.95):
-            pyautogui.moveRel(-50, 0)
-            pyautogui.click(), time.sleep(1)
+        # image('left_arrow', offset=(835, 0)), time.sleep(1)
+        # image('stew')
+        # if image('x1', threshold=0.95):
+        #     pyautogui.moveRel(-50, 0)
+        #     pyautogui.click(), time.sleep(1)
+        # image('beeswax')
+        # if image('x1', threshold=0.95):
+        #     pyautogui.moveRel(-50, 0)
+        #     pyautogui.click(), time.sleep(1)
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)
         image('large_haste_potion')
@@ -622,11 +622,11 @@ def craft_food(plot=None):
         
 
         image('left_arrow', offset=(835, 0)), time.sleep(1)     
-        image('shell_of_large_area_damage')
+        image('cotton_paper')
         image('craft')
         
         image('left_arrow', offset=(835, 0)), time.sleep(1)               
-        image('cotton_paper')
+        image('shell_of_large_area_damage')
         image('craft')
            
 
@@ -1768,6 +1768,7 @@ def stuck(plot=None):
 
 
 def main():
+    craft_food('121_116')
     switch_plot('121_116')
     discard(ores=['copper_ore', 'iron_ore'], ingots=['bronze_ingot'], diamonds=['common_topaz', 'uncommon_topaz', 'rare_topaz', 'common_emerald', 'uncommon_emerald'])
     collect_post(Transfers=True, Orders=True)
